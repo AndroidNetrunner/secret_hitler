@@ -1,0 +1,21 @@
+{
+  "name": "secret_hitler",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start:dev": "NODE_ENV=development ts-node-dev --respawn --transfile-only src/index.ts",
+    "start:build": "NODE_ENV=proudction node build/index.js",
+    "start": "NODE_ENV=production ts-node src/index.ts",
+    "build": "tsc",
+    "dev": "nodemon src/index.ts"
+  },
+  "dependencies": {
+    "@discordjs/builders": "^0.6.0",
+    "@discordjs/rest": "^0.1.0-canary.0",
+    "discord-api-types": "^0.23.1",
+    "discord.js": "^13.2.0",
+    "dotenv": "^10.0.0",
+    "wokcommands": "^1.5.3"
+  }
+}
