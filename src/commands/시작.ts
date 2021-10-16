@@ -12,7 +12,7 @@ const start : ICommand = {
             channelOfMessage.send(`이미 시작한 게임이 존재합니다.`);
             return
         }
-        active_games.set(message.channelId, new Game_room(message.author));
+        active_games.set(message.channelId, new Game_room(message));
         const embed = new MessageEmbed()
         .setTitle('시크릿 히틀러에 오신 것을 환영합니다!')
         .setDescription('게임에 참가하시려면 ?참가 를 입력해주세요.')
