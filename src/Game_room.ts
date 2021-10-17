@@ -18,6 +18,7 @@ interface IGameRoom {
 export class Game_room implements IGameRoom {
     players: User[] = [];
     president: User | null = null;
+    chancellor: User | null = null;
     roles: Map<User, role> = new Map();
     remainedElection: 0 | 1 | 2 | 3 = 3;
     termLimitedPresident: User | null = null;

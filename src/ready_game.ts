@@ -34,7 +34,8 @@ const assignRoles = (players: User[]) : Map<User, role>=> {
 const notifyRoles = (roleOfPlayers : Map<User, role>) => {
     roleOfPlayers.forEach((role, player) => {
         const description = decideDescriptionByRole(player, roleOfPlayers);
-        const embed = new MessageEmbed().setTitle(`당신의 역할은 ${role}입니다.`).setDescription(description);
+        const color = role === LIBERAL ? 'BLUE' : 'RED';
+        const embed = new MessageEmbed().setTitle(`당신의 역할은 ${role}입니다.`).setDescription(description).setColor(color);
         player.send({embeds: [embed]})
     })
 };
@@ -44,10 +45,21 @@ const getWhoAreFascists = (player: User, roleOfPlayers: Map<User, role>) => {
     roleOfPlayers.forEach((role, opponent) => {
         if (opponent === player)
             return
-        if (role === HITLER || role === FASCIST)
+        if (role === FASCIST)
             fascists.push(opponent)
     })
-    return fascists;
+    return fascists.length ? fascists : `(존재하지 않음)`;
+}
+
+const getWhoIsHitler = (player: User, roleOfPlayers: Map<User, role>) => {
+    let hitler : User | null = null;
+    roleOfPlayers.forEach((role, opponent) => {
+        if (opponent === player)
+            return
+        if (role === HITLER)
+            hitler = opponent;
+    })
+    return hitler;
 }
 
 const decideDescriptionByRole = (player: User, roleOfPlayers : Map<User, role>) : string => {
@@ -61,7 +73,7 @@ const decideDescriptionByRole = (player: User, roleOfPlayers : Map<User, role>) 
         case LIBERAL:
             return '히틀러를 암살하거나, 자유당 법안 트랙을 모두 채워 게임에서 승리하세요!';
         case FASCIST:
-            return `당신의 파시스트 동료는 ${getWhoAreFascists(player, roleOfPlayers)}입니다!`
+            return `당신의 파시스트 동료는 ${getWhoAreFascists(player, roleOfPlayers)}이며, 히틀러는 ${getWhoIsHitler(player, roleOfPlayers)}입니다!`
         default:
             return `존재하지 않는 역할입니다.`;
     }

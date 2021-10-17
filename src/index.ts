@@ -1,7 +1,10 @@
-import DiscordJS, { Intents } from 'discord.js';
+import DiscordJS, { Intents, User } from 'discord.js';
 import WOKCommands from 'wokcommands';
 import path from 'path';
 import dotenv from 'dotenv';
+import { active_games } from './state';
+import { startVote } from './start_vote';
+
 dotenv.config()
 
 const client = new DiscordJS.Client({
@@ -21,12 +24,19 @@ client.on('ready', () => {
     }).setDefaultPrefix('?');
 })
 
-// client.on('messageCreate', (message) => {
-//     if (message.content === 'ping') {
-//         message.reply({
-//             content: 'pong',
-//         })
-//     }
-// })
+client.on('messageReactionAdd', (reaction, user) => {
+    if (user.bot)
+        return
+    const currentGame = active_games.get(reaction.message.channelId);
+    if (currentGame) {
+        if (user !== currentGame.president)
+            return
+        const chancellor = currentGame.emojis.get(reaction.emoji.toString());
+        if (chancellor)
+            currentGame.chancellor = chancellor;
+        reaction.message.delete()
+        startVote(reaction.message.channelId);
+    }
+})
 
 client.login(process.env.TOKEN);
