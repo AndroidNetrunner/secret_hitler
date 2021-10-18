@@ -1,10 +1,12 @@
 import { MessageActionRow, MessageButton, MessageEmbed, User } from 'discord.js';
+import { Game_room } from './Game_room';
 import {active_games} from './state';
-
+import { readVotes } from './read_votes';
 export const startVote = async (channelId: string) => {
-    const players = active_games.get(channelId)?.players as User[];
-    const president = active_games.get(channelId)?.president as User;
-    const chancellor = active_games.get(channelId)?.chancellor as User;
+    const currentGame = active_games.get(channelId) as Game_room;
+    const players = currentGame.players as User[];
+    const president = currentGame.president as User;
+    const chancellor = currentGame.chancellor as User;
     for (let player of players) {
         const embed = new MessageEmbed()
         .setTitle('이제 내각에 관한 투표를 할 시간입니다.')
@@ -18,7 +20,7 @@ export const startVote = async (channelId: string) => {
             new MessageButton()
             .setCustomId('agree')
             .setLabel('찬성')
-            .setStyle('PRIMARY')
+            .setStyle('SUCCESS')
         )
         .addComponents(
             new MessageButton()
@@ -36,15 +38,20 @@ export const startVote = async (channelId: string) => {
         });
         collector?.on('collect', (interaction) => {
             let content: string | null = null;
-            if (interaction.customId === 'agree')
+            if (interaction.customId === 'agree') {
                 content = "찬성에 투표하셨습니다.";
-            else
+                currentGame.agree.push(interaction.user);
+            }
+            else {
                 content = "반대에 투표하셨습니다.";
+                currentGame.disagree.push(interaction.user);
+            }
             message.edit({
                 content: content,
                 embeds: [],
                 components: [],
-            })
+            });
+            readVotes(currentGame);
         });
     }
 }

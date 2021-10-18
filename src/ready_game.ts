@@ -1,17 +1,20 @@
 import { MessageEmbed, TextBasedChannels, User } from "discord.js";
-import { FASCIST, fascistBoard, HITLER, LIBERAL, role, roleByNumberOfPlayers } from "./board";
+import { FASCIST, fascistBoard, FascistBoard, HITLER, LIBERAL, Role, roleByNumberOfPlayers } from "./board";
 import { Game_room } from "./Game_room";
 import { startRound } from "./start_round";
 import { active_games } from "./state";
 
 export const readyGame = (channelId: string) => {
-    const players = active_games.get(channelId)?.players as User[];
+    const currentGame = active_games.get(channelId) as Game_room;
+    const players = currentGame.players as User[];
     const roleOfPlayers = assignRoles(players);
+    currentGame.roles = roleOfPlayers;
     notifyRoles(roleOfPlayers);
     decideFirstPresident(channelId);
     setEmoji(channelId);
     selectBoard(channelId);
     printBoard(channelId);
+    currentGame.policyDeck = shuffle(currentGame.policyDeck);
     startRound(channelId);
 }
 
@@ -21,17 +24,17 @@ const decideFirstPresident = (channelId: string) => {
     currentGame.president = choose(players);
 }
 
-const assignRoles = (players: User[]) : Map<User, role>=> {
+const assignRoles = (players: User[]) : Map<User, Role>=> {
     const shuffledPlayers = shuffle(players);
     const numberOfPlayers = shuffledPlayers.length;
     const possibleRoles = roleByNumberOfPlayers[numberOfPlayers as 5 | 6 | 7 | 8 | 9 | 10];
-    const roleOfPlayers: Map<User, role> = new Map();
+    const roleOfPlayers: Map<User, Role> = new Map();
     for (let player of players)
-        roleOfPlayers.set(player, possibleRoles.pop() as role)
+        roleOfPlayers.set(player, possibleRoles.pop() as Role)
     return roleOfPlayers;
 }
 
-const notifyRoles = (roleOfPlayers : Map<User, role>) => {
+const notifyRoles = (roleOfPlayers : Map<User, Role>) => {
     roleOfPlayers.forEach((role, player) => {
         const description = decideDescriptionByRole(player, roleOfPlayers);
         const color = role === LIBERAL ? 'BLUE' : 'RED';
@@ -40,7 +43,7 @@ const notifyRoles = (roleOfPlayers : Map<User, role>) => {
     })
 };
 
-const getWhoAreFascists = (player: User, roleOfPlayers: Map<User, role>) => {
+const getWhoAreFascists = (player: User, roleOfPlayers: Map<User, Role>) => {
     let fascists : User[] = [];
     roleOfPlayers.forEach((role, opponent) => {
         if (opponent === player)
@@ -51,7 +54,7 @@ const getWhoAreFascists = (player: User, roleOfPlayers: Map<User, role>) => {
     return fascists.length ? fascists : `(존재하지 않음)`;
 }
 
-const getWhoIsHitler = (player: User, roleOfPlayers: Map<User, role>) => {
+const getWhoIsHitler = (player: User, roleOfPlayers: Map<User, Role>) => {
     let hitler : User | null = null;
     roleOfPlayers.forEach((role, opponent) => {
         if (opponent === player)
@@ -62,7 +65,7 @@ const getWhoIsHitler = (player: User, roleOfPlayers: Map<User, role>) => {
     return hitler;
 }
 
-const decideDescriptionByRole = (player: User, roleOfPlayers : Map<User, role>) : string => {
+const decideDescriptionByRole = (player: User, roleOfPlayers : Map<User, Role>) : string => {
     const role = roleOfPlayers.get(player);
     switch (role) {
         case HITLER:
@@ -86,7 +89,7 @@ const selectBoard = (channelId: string) => {
 }
 
 const printBoard = (channelId: string) => {
-    const board = active_games.get(channelId)?.fascistBoard as fascistBoard;
+    const board = active_games.get(channelId)?.fascistBoard as FascistBoard;
     const mainChannel = active_games.get(channelId)?.mainChannel as TextBasedChannels;
     const embed = new MessageEmbed().setTitle('모든 플레이어에게 역할 배분을 하였습니다.').setFields({
         name: '이번 게임에 쓰일 파시스트 트랙은 다음과 같습니다.',
@@ -104,7 +107,7 @@ const setEmoji = (channelId : string) => {
         channel.emojis.set(`${index.toString()}\u20E3`, players[index]); 
 }
 
-function shuffle(array : any[]) {
+export function shuffle(array : any[]) {
     let currentIndex = array.length, randomIndex;
     while (currentIndex != 0) {
         randomIndex = Math.floor(Math.random() * currentIndex);

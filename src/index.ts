@@ -25,18 +25,7 @@ client.on('ready', () => {
 })
 
 client.on('messageReactionAdd', (reaction, user) => {
-    if (user.bot)
-        return
-    const currentGame = active_games.get(reaction.message.channelId);
-    if (currentGame) {
-        if (user !== currentGame.president)
-            return
-        const chancellor = currentGame.emojis.get(reaction.emoji.toString());
-        if (chancellor)
-            currentGame.chancellor = chancellor;
-        reaction.message.delete()
-        startVote(reaction.message.channelId);
-    }
+
 })
 
 client.login(process.env.TOKEN);
