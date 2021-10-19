@@ -8,7 +8,7 @@ export const readyGame = (channelId: string) => {
     const currentGame = active_games.get(channelId) as Game_room;
     const players = currentGame.players as User[];
     const roleOfPlayers = assignRoles(players);
-    currentGame.roles = roleOfPlayers;
+    currentGame.roles = roleOfPlayers
     notifyRoles(roleOfPlayers);
     decideFirstPresident(channelId);
     setEmoji(channelId);

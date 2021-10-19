@@ -1,11 +1,13 @@
 import { Mutex } from "async-mutex";
 import { MessageEmbed, User } from "discord.js";
 import { Game_room } from "./Game_room";
-import { startRound } from "./start_round";
 import { startLegislativeSession } from "./legislativeSession";
+import { prepareNextRound, shufflePolicyDeck } from './executiveAction';
+import { FASCIST, HITLER, Policy } from "./board";
+import { completeFascistTrack, completeLiberalTrack, electHitlerByChancellor } from './end_game';
 
 export const readVotes = async (currentGame: Game_room) => {
-    const voteLock = new Mutex()
+    const voteLock = new Mutex();
     const release = await voteLock.acquire();
     const agree = currentGame.agree;
     const disagree = currentGame.disagree;
@@ -14,7 +16,11 @@ export const readVotes = async (currentGame: Game_room) => {
         currentGame.agree = [];
         currentGame.disagree = [];
         if (isElected) {
-            startLegislativeSession(currentGame);
+            if (currentGame.enactedFascistPolicy >= 3 &&
+                currentGame.roles.get(currentGame.chancellor as User) === HITLER)
+                electHitlerByChancellor(currentGame);
+            else
+                startLegislativeSession(currentGame);
         }
         else {
             currentGame.electionTracker += 1;
@@ -24,8 +30,7 @@ export const readVotes = async (currentGame: Game_room) => {
                 currentGame.specialElection = false;
                 currentGame.president = currentGame.termLimitedPresident;
             }
-            changePresident(currentGame);
-            startRound(currentGame.mainChannel.id);
+            prepareNextRound(currentGame);
         }
     }
     release();
@@ -60,5 +65,21 @@ export const changePresident = (currentGame: Game_room) => {
 }
 
 const enactTopPolicy = (currentGame: Game_room) => {
-
+    const newPolicy: Policy = currentGame.policyDeck.pop() as Policy;
+    currentGame.electionTracker = 0;
+    if (newPolicy === FASCIST) {
+        if (currentGame.enactedFascistPolicy === 5)
+            completeFascistTrack(currentGame);
+        else
+            currentGame.enactedFascistPolicy += 1;
+    }
+    else { 
+        if (currentGame.enactedLiberalPolicy === 4)
+            completeLiberalTrack(currentGame);
+        else
+            currentGame.enactedLiberalPolicy += 1;
+    }
+    if (currentGame.policyDeck.length < 3)
+        shufflePolicyDeck(currentGame);
+    prepareNextRound(currentGame);
 }

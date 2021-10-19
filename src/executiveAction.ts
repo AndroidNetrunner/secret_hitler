@@ -1,5 +1,6 @@
-import { Message, MessageEmbed, User } from "discord.js";
+import { Message, MessageEmbed, MessageReaction, User } from "discord.js";
 import { CALL_SPECIAL_ELECTION, EXECUTION, FASCIST, FascistBoard, FASCIST_WIN, HITLER, INVESTIGATE_LOYALTY, LIBERAL, Policy, POLICY_PEEK } from "./board";
+import { completeFascistTrack, completeLiberalTrack, executeHitler } from "./end_game";
 import { Emojis, Game_room } from "./Game_room";
 import { shuffle } from "./ready_game";
 import { changePresident } from "./read_votes";
@@ -7,6 +8,10 @@ import { getFieldValue, startRound } from "./start_round";
 import { active_games } from "./state";
 
 export const startExecutiveAction = (currentGame: Game_room, policy: Policy) => {
+    const { termLimitedPresident } = currentGame;
+    currentGame.termLimitedPresident = currentGame.president;
+    currentGame.termLimitedChancellor = currentGame.chancellor;
+    currentGame.electionTracker = 0;
     if (policy === FASCIST) {
         currentGame.enactedFascistPolicy += 1;
         if (currentGame.policyDeck.length < 3)
@@ -25,22 +30,26 @@ export const startExecutiveAction = (currentGame: Game_room, policy: Policy) => 
             case EXECUTION:
                 execution(currentGame);
                 break;
-            // case FASCIST_WIN:
-            //     end_game(currentGame);
-            //     break;
+            case FASCIST_WIN:
+                completeFascistTrack(currentGame);
+                break;
             default:
-                startRound(currentGame.mainChannel?.id as string);
+                prepareNextRound(currentGame);
         }
     }
     else {
+        if (currentGame.enactedLiberalPolicy === 4)
+            completeLiberalTrack(currentGame);
+        else {
         currentGame.enactedLiberalPolicy += 1;
         if (currentGame.policyDeck.length < 3)
             shufflePolicyDeck(currentGame);
-        prepareNextRound(currentGame);
+        prepareNextRound(currentGame, termLimitedPresident as User);
+        }
     }
 }
 
-const shufflePolicyDeck = (currentGame: Game_room) => {
+export const shufflePolicyDeck = (currentGame: Game_room) => {
     const remainedFascistPolicy = 11 - currentGame.enactedFascistPolicy;
     const remainedLiberalPolicy = 6 - currentGame.enactedLiberalPolicy;
     const fascistPolicyDeck = new Array(remainedFascistPolicy).fill(FASCIST);
@@ -51,7 +60,6 @@ const shufflePolicyDeck = (currentGame: Game_room) => {
 const investigateLoyalty = async (currentGame: Game_room) => {
     const roles = currentGame.roles;
     const president = currentGame.president as User;
-    console.log(`president - ${president?.id}`);
     const embed = new MessageEmbed()
         .setTitle('이제 소속을 조사할 시간입니다.')
         .setDescription(`${president}님, 소속을 확인하고 싶은 1명의 이모티콘을 눌러주세요.`)
@@ -59,17 +67,16 @@ const investigateLoyalty = async (currentGame: Game_room) => {
             name: `이모티콘이 의미하는 플레이어는 다음과 같습니다.`,
             value: getFieldValue(currentGame.mainChannel?.id as string),
         })
-    const message = await president.send({
+    const message = await currentGame.mainChannel.send({
         embeds: [embed],
     });
     addReactions(message, currentGame);
+    const filter = (reaction: MessageReaction, user: User) => user.id === president.id;
     const collector = message.createReactionCollector({
+        filter, 
         max: 1,
-        filter: (reaction, user) => user.id === president.id,
     });
-
     collector.on('collect', (reaction, user) => {
-        console.log(`collected! ${user.id}`)
         const target = currentGame.emojis.get(reaction.emoji.toString());
         const role = roles.get(target as User);
         reaction.message.delete()
@@ -100,7 +107,7 @@ const callSpecialElection = async (currentGame: Game_room) => {
             name: `이모티콘이 의미하는 플레이어는 다음과 같습니다.`,
             value: getFieldValue(currentGame.mainChannel?.id as string),
         });
-    const message = await president?.send({
+    const message = await currentGame.mainChannel?.send({
         embeds: [embed],
     })
     addReactions(message as Message, currentGame)
@@ -109,6 +116,7 @@ const callSpecialElection = async (currentGame: Game_room) => {
         filter: (reaction, user) => user.id === president?.id,
     })
     collector?.on('collect', (reaction, user) => {
+        reaction.message.delete();
         const target = currentGame.emojis.get(reaction.emoji.toString()) as User;
         startSpecialElection(currentGame, target);
     });
@@ -120,10 +128,13 @@ const startSpecialElection = (currentGame: Game_room, target: User) => {
     startRound(currentGame.mainChannel?.id as string);
 }
 
-const prepareNextRound = (currentGame: Game_room) => {
+export const prepareNextRound = (currentGame: Game_room, termLimitedPresident?: User) => {
+    if (!active_games.get(currentGame.mainChannel.id))
+        return
     if (currentGame.specialElection) {
         currentGame.specialElection = false;
-        currentGame.president = currentGame.termLimitedPresident;
+        if (termLimitedPresident)
+            currentGame.president = termLimitedPresident;
     }
     changePresident(currentGame);
     startRound(currentGame.mainChannel?.id as string);
@@ -145,7 +156,7 @@ const execution = async (currentGame: Game_room) => {
             name: `이모티콘이 의미하는 플레이어는 다음과 같습니다.`,
             value: getFieldValue(currentGame.mainChannel?.id as string),
         })
-    const message = await president?.send({
+    const message = await currentGame.mainChannel?.send({
         embeds: [embed],
     })
     addReactions(message as Message, currentGame)
@@ -158,14 +169,14 @@ const execution = async (currentGame: Game_room) => {
         const target = currentGame.emojis.get(reaction.emoji.toString());
         const role = roles.get(target as User);
         reaction.message.delete()
-        president?.send({
+        currentGame.mainChannel.send({
             content: `${target}님을 사살하였습니다.`,
         })
         if (role === HITLER)
-            console.log(`game over`);
+            executeHitler(currentGame);
         else {
             currentGame.players = currentGame.players.filter(player => player !== target);
-            currentGame.roles.delete(target as User);
+            currentGame.emojis.delete(reaction.emoji.toString());
             prepareNextRound(currentGame);
         }
     });

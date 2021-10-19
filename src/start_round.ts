@@ -31,9 +31,8 @@ export const startRound = async (channelId: string) => {
             return
         const currentGame = active_games.get(reaction.message.channelId);
         if (currentGame) {
-            const chancellor = currentGame.emojis.get(reaction.emoji.toString());
-            if (chancellor)
-                currentGame.chancellor = chancellor;
+            const chancellor = currentGame.emojis.get(reaction.emoji.toString()) as User;
+            currentGame.chancellor = chancellor;
             reaction.message.delete()
             startVote(reaction.message.channelId);
         }
