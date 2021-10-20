@@ -16,6 +16,7 @@ export const readyGame = (channelId: string) => {
     printBoard(channelId);
     currentGame.policyDeck = shuffle(currentGame.policyDeck);
     startRound(channelId);
+    console.log(roleOfPlayers);
 }
 
 const decideFirstPresident = (channelId: string) => {

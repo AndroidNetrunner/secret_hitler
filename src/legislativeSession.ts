@@ -25,6 +25,7 @@ const presidentChoosePolicy = async (currentGame: Game_room, drawedPolicies: Pol
         max: 1,
     });
     collector?.on('collect', (interaction) => {
+        currentGame.mainChannel.send(`대통령이 법안을 하나 버렸습니다.`);
         drawedPolicies.splice(parseInt(interaction.customId), 1);
         chancellorChoosePolicy(currentGame, drawedPolicies);
         message?.delete();
@@ -54,9 +55,12 @@ const chancellorChoosePolicy = async (currentGame: Game_room, drawedPolicies: Po
     collector?.on('collect', (interaction) => {
         if (interaction.customId === 'veto')
             vetoPower(currentGame, drawedPolicies);
+        else {
+            currentGame.mainChannel.send('수상이 법안을 하나 버렸습니다.')
         drawedPolicies.splice(parseInt(interaction.customId), 1);
         message?.delete();
         startExecutiveAction(currentGame, drawedPolicies[0]);
+        }
     })
 };
 
@@ -94,13 +98,18 @@ const vetoPower = async (currentGame : Game_room, drawedPolicies: Policy[]) => {
         embeds: [embed],
         components: [vetoButton],
     })
+
+    currentGame.mainChannel.send({
+        content: embed.title,
+    })
+
     const collector = president?.dmChannel?.createMessageComponentCollector({
         max: 1,
     });
     collector?.on('collect', (interaction) => {
         message?.delete();
         if (interaction.customId === 'agree') {
-            currentGame.mainChannel.send("거부권이 사용되었습니다.");
+            currentGame.mainChannel.send("거부권 사용이 승인되었습니다.");
             prepareNextRound(currentGame);
         }
         else
@@ -109,6 +118,9 @@ const vetoPower = async (currentGame : Game_room, drawedPolicies: Policy[]) => {
 }
 
 const vetoRefused = async (currentGame: Game_room, drawedPolicies: Policy[]) => {
+    currentGame.mainChannel.send({
+        content: '거부권 사용이 반려되었습니다.',
+    })
     const chancellor = currentGame.chancellor;
     const embed = new MessageEmbed()
     .setTitle('이제 법안을 제정할 차례입니다.')

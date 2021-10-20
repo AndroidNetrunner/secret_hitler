@@ -1,5 +1,5 @@
 import { Message, MessageEmbed, MessageReaction, User } from "discord.js";
-import { CALL_SPECIAL_ELECTION, EXECUTION, FASCIST, FascistBoard, FASCIST_WIN, HITLER, INVESTIGATE_LOYALTY, LIBERAL, Policy, POLICY_PEEK } from "./board";
+import { BLANK, CALL_SPECIAL_ELECTION, EXECUTION, FASCIST, FascistBoard, FASCIST_WIN, HITLER, INVESTIGATE_LOYALTY, LIBERAL, Policy, POLICY_PEEK } from "./board";
 import { completeFascistTrack, completeLiberalTrack, executeHitler } from "./end_game";
 import { Emojis, Game_room } from "./Game_room";
 import { shuffle } from "./ready_game";
@@ -13,11 +13,17 @@ export const startExecutiveAction = (currentGame: Game_room, policy: Policy) => 
     currentGame.termLimitedChancellor = currentGame.chancellor;
     currentGame.electionTracker = 0;
     if (policy === FASCIST) {
-        currentGame.enactedFascistPolicy += 1;
+        const fascistBoard = currentGame.fascistBoard as FascistBoard;
+        const scheduledPolicy = fascistBoard[currentGame.enactedFascistPolicy];
+        const embed = new MessageEmbed()
+        .setTitle(`${currentGame.enactedFascistPolicy + 1}번째 파시스트 법안이 제정되었습니다.`)
+        .setDescription(scheduledPolicy === BLANK ? `` : `${currentGame.president?.username}님은 ${scheduledPolicy} 권한을 사용할 수 있습니다.`);
+        currentGame.mainChannel.send({
+            embeds: [embed],
+        });
         if (currentGame.policyDeck.length < 3)
             shufflePolicyDeck(currentGame);
-        const fascistBoard = currentGame.fascistBoard as FascistBoard;
-        switch (fascistBoard[currentGame.enactedFascistPolicy - 1]) {
+        switch (scheduledPolicy) {
             case INVESTIGATE_LOYALTY:
                 investigateLoyalty(currentGame);
                 break;
@@ -36,8 +42,15 @@ export const startExecutiveAction = (currentGame: Game_room, policy: Policy) => 
             default:
                 prepareNextRound(currentGame);
         }
+        if (currentGame.enactedFascistPolicy < 5)
+            currentGame.enactedFascistPolicy += 1;
     }
     else {
+        const embed = new MessageEmbed()
+        .setTitle(`${currentGame.enactedLiberalPolicy + 1}번째 자유당 법안이 제정되었습니다.`)
+        currentGame.mainChannel.send({
+            embeds: [embed],
+        });
         if (currentGame.enactedLiberalPolicy === 4)
             completeLiberalTrack(currentGame);
         else {
@@ -54,7 +67,7 @@ export const shufflePolicyDeck = (currentGame: Game_room) => {
     const remainedLiberalPolicy = 6 - currentGame.enactedLiberalPolicy;
     const fascistPolicyDeck = new Array(remainedFascistPolicy).fill(FASCIST);
     const liberalPolicyDeck = new Array(remainedLiberalPolicy).fill(LIBERAL);
-    return shuffle(fascistPolicyDeck.concat(liberalPolicyDeck));
+    currentGame.policyDeck = shuffle(fascistPolicyDeck.concat(liberalPolicyDeck));
 }
 
 const investigateLoyalty = async (currentGame: Game_room) => {

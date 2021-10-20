@@ -48,8 +48,8 @@ const revealVotes = (currentGame: Game_room) => {
         )
         .setFields({
             name: `개표 결과, 이번 정부는 ${result}되었습니다.`,
-            value: `찬성: ${currentGame.agree}\n
-        반대: ${currentGame.disagree}`
+            value: `찬성: ${agree}\n
+        반대: ${disagree}`
         })
     currentGame.mainChannel?.send({
         embeds: [embed]

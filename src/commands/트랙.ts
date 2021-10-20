@@ -11,7 +11,7 @@ const track : ICommand = {
         const currentGame = active_games.get(message.channelId);
         if (!currentGame || !currentGame.fascistBoard)
             return `현재 시작한 게임이 존재하지 않습니다.`;
-        const embed = new MessageEmbed()
+        return new MessageEmbed()
         .setTitle('현재 각 트랙의 현황은 다음과 같습니다.')
         .setFields([{
             name: '파시스트 트랙',
@@ -20,9 +20,6 @@ const track : ICommand = {
             name: '자유당 트랙',
             value: currentGame.enactedLiberalPolicy.toString()
         }])
-        message.channel.send({
-            embeds: [embed]
-        })
     }
 }
 

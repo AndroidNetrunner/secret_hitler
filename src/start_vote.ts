@@ -38,6 +38,7 @@ export const startVote = async (channelId: string) => {
         });
         collector?.on('collect', (interaction) => {
             let content: string | null = null;
+            currentGame.mainChannel.send(`${player.username}님이 투표하셨습니다.`);
             if (interaction.customId === 'agree') {
                 content = "찬성에 투표하셨습니다.";
                 currentGame.agree.push(interaction.user);
