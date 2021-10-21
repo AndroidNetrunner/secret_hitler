@@ -14,8 +14,8 @@ export const startLegislativeSession = (currentGame: Game_room) => {
 const presidentChoosePolicy = async (currentGame: Game_room, drawedPolicies: Policy[]) => {
     const president = currentGame.president;
     const embed = new MessageEmbed()
-    .setTitle('이제 법안을 제정할 차례입니다.')
-    .setDescription(`${president}님, 버릴 법안을 하나 골라 버튼을 하나 눌러주세요.`);
+        .setTitle('이제 법안을 제정할 차례입니다.')
+        .setDescription(`${president}님, 버릴 법안을 하나 골라 버튼을 하나 눌러주세요.`);
     const policyButton = getPolicyButton(drawedPolicies);
     const message = await president?.send({
         embeds: [embed],
@@ -35,15 +35,15 @@ const presidentChoosePolicy = async (currentGame: Game_room, drawedPolicies: Pol
 const chancellorChoosePolicy = async (currentGame: Game_room, drawedPolicies: Policy[]) => {
     const chancellor = currentGame.chancellor;
     const embed = new MessageEmbed()
-    .setTitle('이제 법안을 제정할 차례입니다.')
-    .setDescription(`${chancellor}님, 버릴 법안을 하나 골라 버튼을 하나 눌러주세요.`);
+        .setTitle('이제 법안을 제정할 차례입니다.')
+        .setDescription(`${chancellor}님, 버릴 법안을 하나 골라 버튼을 하나 눌러주세요.`);
     const policyButton = getPolicyButton(shuffle(drawedPolicies));
     if (currentGame.enactedFascistPolicy === 5)
         policyButton.addComponents(
             new MessageButton()
-            .setCustomId('veto')
-            .setStyle('SECONDARY')
-            .setLabel('거부권')
+                .setCustomId('veto')
+                .setStyle('SECONDARY')
+                .setLabel('거부권')
         )
     const message = await chancellor?.send({
         embeds: [embed],
@@ -57,43 +57,43 @@ const chancellorChoosePolicy = async (currentGame: Game_room, drawedPolicies: Po
             vetoPower(currentGame, drawedPolicies);
         else {
             currentGame.mainChannel.send('수상이 법안을 하나 버렸습니다.')
-        drawedPolicies.splice(parseInt(interaction.customId), 1);
-        message?.delete();
-        startExecutiveAction(currentGame, drawedPolicies[0]);
+            drawedPolicies.splice(parseInt(interaction.customId), 1);
+            message?.delete();
+            startExecutiveAction(currentGame, drawedPolicies[0]);
         }
     })
 };
 
-const getPolicyButton = (drawedPolicies: Policy[]) : MessageActionRow => {
+const getPolicyButton = (drawedPolicies: Policy[]): MessageActionRow => {
     const actionRow = new MessageActionRow();
     for (let index in drawedPolicies)
-    actionRow.addComponents(
-        new MessageButton()
-        .setCustomId(index)
-        .setStyle(drawedPolicies[parseInt(index)] === LIBERAL ? 'PRIMARY' : 'DANGER')
-        .setLabel(drawedPolicies[parseInt(index)])
-    )
+        actionRow.addComponents(
+            new MessageButton()
+                .setCustomId(index)
+                .setStyle(drawedPolicies[parseInt(index)] === LIBERAL ? 'PRIMARY' : 'DANGER')
+                .setLabel(drawedPolicies[parseInt(index)])
+        )
     return actionRow;
 }
 
-const vetoPower = async (currentGame : Game_room, drawedPolicies: Policy[]) => {
+const vetoPower = async (currentGame: Game_room, drawedPolicies: Policy[]) => {
     const president = currentGame.president;
     const embed = new MessageEmbed()
-    .setTitle('수상이 거부권 사용을 요청했습니다.')
-    .setDescription('거부권을 사용할 경우 법안들은 모두 폐기되고, 선거 트래커가 1 올라갑니다.');
+        .setTitle('수상이 거부권 사용을 요청했습니다.')
+        .setDescription('거부권을 사용할 경우 법안들은 모두 폐기되고, 선거 트래커가 1 올라갑니다.');
     const vetoButton = new MessageActionRow()
-    .addComponents(
-        new MessageButton()
-        .setCustomId('agree')
-        .setLabel('승인')
-        .setStyle('SUCCESS')
-    )
-    .addComponents(
-        new MessageButton()
-        .setCustomId('disagree')
-        .setLabel('반려')
-        .setStyle('DANGER')
-    );
+        .addComponents(
+            new MessageButton()
+                .setCustomId('agree')
+                .setLabel('승인')
+                .setStyle('SUCCESS')
+        )
+        .addComponents(
+            new MessageButton()
+                .setCustomId('disagree')
+                .setLabel('반려')
+                .setStyle('DANGER')
+        );
     const message = await president?.send({
         embeds: [embed],
         components: [vetoButton],
@@ -123,8 +123,8 @@ const vetoRefused = async (currentGame: Game_room, drawedPolicies: Policy[]) => 
     })
     const chancellor = currentGame.chancellor;
     const embed = new MessageEmbed()
-    .setTitle('이제 법안을 제정할 차례입니다.')
-    .setDescription(`${chancellor}님, 버릴 법안을 하나 골라 버튼을 하나 눌러주세요.`);
+        .setTitle('이제 법안을 제정할 차례입니다.')
+        .setDescription(`${chancellor}님, 버릴 법안을 하나 골라 버튼을 하나 눌러주세요.`);
     const policyButton = getPolicyButton(shuffle(drawedPolicies));
     const message = await chancellor?.send({
         embeds: [embed],
@@ -137,5 +137,5 @@ const vetoRefused = async (currentGame: Game_room, drawedPolicies: Policy[]) => 
         drawedPolicies.splice(parseInt(interaction.customId), 1);
         message?.delete();
         startExecutiveAction(currentGame, drawedPolicies[0]);
-    })      
+    })
 }

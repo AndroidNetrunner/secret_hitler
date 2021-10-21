@@ -37,8 +37,8 @@ const endGame = (currentGame: Game_room, description: string) => {
     active_games.delete(currentGame.mainChannel.id);
 }
 
-const getRoles = (roles: Map<User, Role>) => {
+export const getRoles = (roles: Map<User, Role>) => {
     let value: string = "";
-    roles.forEach((role, user) => value += `${user}: ${role}\n`);
+    roles.forEach((role, user) => value += `${user.username}: ${role}\n`);
     return value;
 }

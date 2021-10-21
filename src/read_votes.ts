@@ -68,12 +68,14 @@ const enactTopPolicy = (currentGame: Game_room) => {
     const newPolicy: Policy = currentGame.policyDeck.pop() as Policy;
     currentGame.electionTracker = 0;
     if (newPolicy === FASCIST) {
+        currentGame.mainChannel.send('파시스트 법안이 랜덤으로 제정되었습니다.');
         if (currentGame.enactedFascistPolicy === 5)
             completeFascistTrack(currentGame);
         else
             currentGame.enactedFascistPolicy += 1;
     }
-    else { 
+    else {
+        currentGame.mainChannel.send('자유당 법안이 랜덤으로 제정되었습니다.');
         if (currentGame.enactedLiberalPolicy === 4)
             completeLiberalTrack(currentGame);
         else

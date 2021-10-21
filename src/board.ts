@@ -8,11 +8,12 @@ export const BLANK = '없음';
 export const FASCIST = '파시스트';
 export const LIBERAL = '자유당';
 export const HITLER = '히틀러';
+export const MASTERMIND = '배후';
 
 export type Policy = '자유당' | '파시스트';
 export type ExecutiveAction = '소속 세력 확인' | '대통령 후보 지명' | '정책 훔쳐보기' | '처형' | '없음' | '파시스트 승리';
 export type FascistBoard = [ExecutiveAction, ExecutiveAction, ExecutiveAction, ExecutiveAction, ExecutiveAction, ExecutiveAction]
-export type Role = '자유당' | '파시스트' | '히틀러';
+export type Role = '자유당' | '파시스트' | '히틀러' | '배후';
 
 interface IroleByNumberOfPlayers {
     3: Role[],

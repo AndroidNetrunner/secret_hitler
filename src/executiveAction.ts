@@ -63,7 +63,7 @@ export const startExecutiveAction = (currentGame: Game_room, policy: Policy) => 
 }
 
 export const shufflePolicyDeck = (currentGame: Game_room) => {
-    const remainedFascistPolicy = 11 - currentGame.enactedFascistPolicy;
+    const remainedFascistPolicy = currentGame.numberOfInitialPolicy - 6 - currentGame.enactedFascistPolicy;
     const remainedLiberalPolicy = 6 - currentGame.enactedLiberalPolicy;
     const fascistPolicyDeck = new Array(remainedFascistPolicy).fill(FASCIST);
     const liberalPolicyDeck = new Array(remainedLiberalPolicy).fill(LIBERAL);
@@ -92,6 +92,7 @@ const investigateLoyalty = async (currentGame: Game_room) => {
     collector.on('collect', (reaction, user) => {
         const target = currentGame.emojis.get(reaction.emoji.toString());
         const role = roles.get(target as User);
+        reaction.message.reply(`${target?.username}을 대통령이 조사하였습니다.`);
         reaction.message.delete()
         president.send({
             content: `${target}의 소속은 ${role === LIBERAL ? '자유당' : '파시스트'}입니다.`,
@@ -137,7 +138,7 @@ const callSpecialElection = async (currentGame: Game_room) => {
 
 const startSpecialElection = (currentGame: Game_room, target: User) => {
     currentGame.specialElection = true
-    const president = changePresident(currentGame);
+    changePresident(currentGame);
     startRound(currentGame.mainChannel?.id as string);
 }
 
