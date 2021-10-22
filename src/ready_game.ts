@@ -11,6 +11,7 @@ export const readyGame = (channelId: string) => {
     const roleOfPlayers = assignRoles(currentGame);
     currentGame.roles = roleOfPlayers
     notifyRoles(roleOfPlayers);
+    console.log(roleOfPlayers);
     decideFirstPresident(channelId);
     setEmoji(channelId);
     selectBoard(channelId);
@@ -33,7 +34,7 @@ const assignRoles = (currentGame: Game_room): Map<User, Role> => {
     const players = currentGame.players;
     const shuffledPlayers = shuffle(players);
     const numberOfPlayers = shuffledPlayers.length;
-    const possibleRoles = currentGame.mastermind ? setMastermind(roleByNumberOfPlayers[numberOfPlayers as 5 | 6 | 7 | 8 | 9 | 10], currentGame): [...roleByNumberOfPlayers[numberOfPlayers as 5 | 6 | 7 | 8 | 9 | 10]] as Role[];
+    const possibleRoles = currentGame.mastermind ? setMastermind(roleByNumberOfPlayers[numberOfPlayers as 5 | 6 | 7 | 8 | 9 | 10], currentGame) : [...roleByNumberOfPlayers[numberOfPlayers as 5 | 6 | 7 | 8 | 9 | 10]] as Role[];
     const roleOfPlayers: Map<User, Role> = new Map();
     for (let player of players)
         roleOfPlayers.set(player, possibleRoles.pop() as Role)
@@ -133,18 +134,20 @@ const printBoard = (channelId: string) => {
 
 const setPolicyDeck = (channelId: string) => {
     const currentGame = active_games.get(channelId) as Game_room;
-    const { length } = currentGame.players;
-    switch (length) {
-        case 6:
-            currentGame.policyDeck.pop()
-            currentGame.enactedFascistPolicy += 1;
-            break;
-        case 7:
-            currentGame.policyDeck.pop()
-            currentGame.numberOfInitialPolicy -= 1;
-        case 9:
-            currentGame.policyDeck.pop()
-            currentGame.numberOfInitialPolicy -= 1;
+    if (currentGame.balance) {
+        const { length } = currentGame.players;
+        switch (length) {
+            case 6:
+                currentGame.policyDeck.pop()
+                currentGame.enactedFascistPolicy += 1;
+                break;
+            case 7:
+                currentGame.policyDeck.pop()
+                currentGame.numberOfInitialPolicy -= 1;
+            case 9:
+                currentGame.policyDeck.pop()
+                currentGame.numberOfInitialPolicy -= 1;
+        }
     }
     currentGame.policyDeck = shuffle(currentGame.policyDeck);
 }

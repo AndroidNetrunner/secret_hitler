@@ -113,7 +113,7 @@ const investigateLoyalty = async (currentGame: Game_room) => {
     collector.on('collect', (reaction, user) => {
         const target = currentGame.emojis.get(reaction.emoji.toString());
         const role = roles.get(target as User);
-        reaction.message.reply(`${target}을 대통령이 조사하였습니다.`);
+        reaction.message.channel.send(`${target}을 대통령이 조사하였습니다.`);
         reaction.message.delete()
         president.send({
             content: `${target}의 소속은 ${role === LIBERAL ? '자유당' : '파시스트'}입니다.`,
