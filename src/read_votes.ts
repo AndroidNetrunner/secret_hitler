@@ -4,8 +4,8 @@ import { Game_room } from "./Game_room";
 import { startLegislativeSession } from "./legislativeSession";
 import { prepareNextRound, shufflePolicyDeck } from './executiveAction';
 import { FASCIST, HITLER, Policy } from "./board";
-import { completeFascistTrack, completeLiberalTrack, electHitlerByChancellor } from './end_game';
-
+import { completeFascistTrack, completeLiberalTrack, electHitlerByChancellor, makeSuddenDeathByMastermind } from './end_game';
+import { revealsMastermind } from "./executiveAction";
 export const readVotes = async (currentGame: Game_room) => {
     const voteLock = new Mutex();
     const release = await voteLock.acquire();
@@ -69,6 +69,8 @@ const enactTopPolicy = (currentGame: Game_room) => {
     currentGame.electionTracker = 0;
     if (newPolicy === FASCIST) {
         currentGame.mainChannel.send('파시스트 법안이 랜덤으로 제정되었습니다.');
+        if (currentGame.enactedFascistPolicy === 4 && currentGame.enactedLiberalPolicy === 4)
+            makeSuddenDeathByMastermind(currentGame);
         if (currentGame.enactedFascistPolicy === 5)
             completeFascistTrack(currentGame);
         else
@@ -76,6 +78,8 @@ const enactTopPolicy = (currentGame: Game_room) => {
     }
     else {
         currentGame.mainChannel.send('자유당 법안이 랜덤으로 제정되었습니다.');
+        if (currentGame.enactedFascistPolicy === 5 && currentGame.enactedLiberalPolicy === 3)
+            revealsMastermind(currentGame);
         if (currentGame.enactedLiberalPolicy === 4)
             completeLiberalTrack(currentGame);
         else

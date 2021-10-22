@@ -1,4 +1,4 @@
-import { Message, MessageEmbed, MessageReaction, User } from "discord.js";
+import { Emoji, Message, MessageEmbed, MessageReaction, User } from "discord.js";
 import { BLANK, CALL_SPECIAL_ELECTION, EXECUTION, FASCIST, FascistBoard, FASCIST_WIN, HITLER, INVESTIGATE_LOYALTY, LIBERAL, MASTERMIND, Policy, POLICY_PEEK } from "./board";
 import { completeFascistTrack, completeLiberalTrack, enactFourthLiberalPolicyByMastermind, executeHitler, makeSuddenDeathByMastermind } from "./end_game";
 import { Emojis, Game_room } from "./Game_room";
@@ -16,8 +16,8 @@ export const startExecutiveAction = (currentGame: Game_room, policy: Policy) => 
         const fascistBoard = currentGame.fascistBoard as FascistBoard;
         const scheduledPolicy = fascistBoard[currentGame.enactedFascistPolicy];
         const embed = new MessageEmbed()
-        .setTitle(`${currentGame.enactedFascistPolicy + 1}번째 파시스트 법안이 제정되었습니다.`)
-        .setDescription(scheduledPolicy === BLANK ? `` : `${currentGame.president}님은 ${scheduledPolicy} 권한을 사용할 수 있습니다.`);
+            .setTitle(`${currentGame.enactedFascistPolicy + 1}번째 파시스트 법안이 제정되었습니다.`)
+            .setDescription(scheduledPolicy === BLANK ? `` : `${currentGame.president}님은 ${scheduledPolicy} 권한을 사용할 수 있습니다.`);
         currentGame.mainChannel.send({
             embeds: [embed],
         });
@@ -47,12 +47,16 @@ export const startExecutiveAction = (currentGame: Game_room, policy: Policy) => 
     }
     else {
         const embed = new MessageEmbed()
-        .setTitle(`${currentGame.enactedLiberalPolicy + 1}번째 자유당 법안이 제정되었습니다.`)
-        if (currentGame.enactedFascistPolicy === 5 && 
-            currentGame.enactedLiberalPolicy === 4 &&
-            currentGame.roles.get(currentGame.chancellor as User) === MASTERMIND) {
+            .setTitle(`${currentGame.enactedLiberalPolicy + 1}번째 자유당 법안이 제정되었습니다.`)
+        if (currentGame.enactedFascistPolicy === 5 &&
+            currentGame.enactedLiberalPolicy === 4) 
+            {
+            if (currentGame.roles.get(currentGame.chancellor as User) === MASTERMIND) {
                 enactFourthLiberalPolicyByMastermind(currentGame);
-            return;
+                return;
+            }
+            else
+                revealsMastermind(currentGame);
         }
         currentGame.mainChannel.send({
             embeds: [embed],
@@ -60,12 +64,23 @@ export const startExecutiveAction = (currentGame: Game_room, policy: Policy) => 
         if (currentGame.enactedLiberalPolicy === 4)
             completeLiberalTrack(currentGame);
         else {
-        currentGame.enactedLiberalPolicy += 1;
-        if (currentGame.policyDeck.length < 3)
-            shufflePolicyDeck(currentGame);
-        prepareNextRound(currentGame, termLimitedPresident as User);
+            currentGame.enactedLiberalPolicy += 1;
+            if (currentGame.policyDeck.length < 3)
+                shufflePolicyDeck(currentGame);
+            prepareNextRound(currentGame, termLimitedPresident as User);
         }
     }
+}
+
+export const revealsMastermind = (currentGame: Game_room) => {
+    let mastermind : User | null = null;
+    currentGame.roles.forEach((role, user) => role === MASTERMIND ? mastermind = user : null)
+    if (mastermind)
+        currentGame.mainChannel.send(`배후의 정체가 드러났습니다! 배후는 ${mastermind}입니다.`);
+    currentGame.players = currentGame.players.filter(player => player !== mastermind);
+    let mastermindEmoji : string = "";
+    currentGame.emojis.forEach((user, emoji) => user === mastermind ? mastermindEmoji = emoji : null);
+    currentGame.emojis.delete(mastermindEmoji);
 }
 
 export const shufflePolicyDeck = (currentGame: Game_room) => {
@@ -92,7 +107,7 @@ const investigateLoyalty = async (currentGame: Game_room) => {
     addReactions(message, currentGame);
     const filter = (reaction: MessageReaction, user: User) => !!(currentGame.emojis.get(reaction.emoji.toString()) && user.id === president.id);
     const collector = message.createReactionCollector({
-        filter, 
+        filter,
         max: 1,
     });
     collector.on('collect', (reaction, user) => {
@@ -195,8 +210,7 @@ const execution = async (currentGame: Game_room) => {
         if (role === HITLER)
             executeHitler(currentGame);
         else {
-            if (currentGame.enactedLiberalPolicy === 4 && currentGame.enactedFascistPolicy === 5)
-            {
+            if (currentGame.enactedLiberalPolicy === 4 && currentGame.enactedFascistPolicy === 5) {
                 makeSuddenDeathByMastermind(currentGame);
                 return;
             }
