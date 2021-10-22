@@ -1,6 +1,6 @@
 import { Message, MessageEmbed, MessageReaction, User } from "discord.js";
-import { BLANK, CALL_SPECIAL_ELECTION, EXECUTION, FASCIST, FascistBoard, FASCIST_WIN, HITLER, INVESTIGATE_LOYALTY, LIBERAL, Policy, POLICY_PEEK } from "./board";
-import { completeFascistTrack, completeLiberalTrack, executeHitler } from "./end_game";
+import { BLANK, CALL_SPECIAL_ELECTION, EXECUTION, FASCIST, FascistBoard, FASCIST_WIN, HITLER, INVESTIGATE_LOYALTY, LIBERAL, MASTERMIND, Policy, POLICY_PEEK } from "./board";
+import { completeFascistTrack, completeLiberalTrack, enactFourthLiberalPolicyByMastermind, executeHitler, makeSuddenDeathByMastermind } from "./end_game";
 import { Emojis, Game_room } from "./Game_room";
 import { shuffle } from "./ready_game";
 import { changePresident } from "./read_votes";
@@ -17,7 +17,7 @@ export const startExecutiveAction = (currentGame: Game_room, policy: Policy) => 
         const scheduledPolicy = fascistBoard[currentGame.enactedFascistPolicy];
         const embed = new MessageEmbed()
         .setTitle(`${currentGame.enactedFascistPolicy + 1}번째 파시스트 법안이 제정되었습니다.`)
-        .setDescription(scheduledPolicy === BLANK ? `` : `${currentGame.president?.username}님은 ${scheduledPolicy} 권한을 사용할 수 있습니다.`);
+        .setDescription(scheduledPolicy === BLANK ? `` : `${currentGame.president}님은 ${scheduledPolicy} 권한을 사용할 수 있습니다.`);
         currentGame.mainChannel.send({
             embeds: [embed],
         });
@@ -48,6 +48,12 @@ export const startExecutiveAction = (currentGame: Game_room, policy: Policy) => 
     else {
         const embed = new MessageEmbed()
         .setTitle(`${currentGame.enactedLiberalPolicy + 1}번째 자유당 법안이 제정되었습니다.`)
+        if (currentGame.enactedFascistPolicy === 5 && 
+            currentGame.enactedLiberalPolicy === 4 &&
+            currentGame.roles.get(currentGame.chancellor as User) === MASTERMIND) {
+                enactFourthLiberalPolicyByMastermind(currentGame);
+            return;
+        }
         currentGame.mainChannel.send({
             embeds: [embed],
         });
@@ -92,7 +98,7 @@ const investigateLoyalty = async (currentGame: Game_room) => {
     collector.on('collect', (reaction, user) => {
         const target = currentGame.emojis.get(reaction.emoji.toString());
         const role = roles.get(target as User);
-        reaction.message.reply(`${target?.username}을 대통령이 조사하였습니다.`);
+        reaction.message.reply(`${target}을 대통령이 조사하였습니다.`);
         reaction.message.delete()
         president.send({
             content: `${target}의 소속은 ${role === LIBERAL ? '자유당' : '파시스트'}입니다.`,
@@ -189,6 +195,11 @@ const execution = async (currentGame: Game_room) => {
         if (role === HITLER)
             executeHitler(currentGame);
         else {
+            if (currentGame.enactedLiberalPolicy === 4 && currentGame.enactedFascistPolicy === 5)
+            {
+                makeSuddenDeathByMastermind(currentGame);
+                return;
+            }
             currentGame.players = currentGame.players.filter(player => player !== target);
             currentGame.emojis.delete(reaction.emoji.toString());
             prepareNextRound(currentGame);

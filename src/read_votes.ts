@@ -44,7 +44,7 @@ const revealVotes = (currentGame: Game_room) => {
     const embed = new MessageEmbed()
         .setTitle(`${electionTracker + 1}번째 선거 결과는 다음과 같습니다.`)
         .setDescription(
-            `대통령 후보: ${currentGame.president?.username}, 수상 후보: ${currentGame.chancellor?.username}`
+            `대통령 후보: ${currentGame.president}, 수상 후보: ${currentGame.chancellor}`
         )
         .setFields({
             name: `개표 결과, 이번 정부는 ${result}되었습니다.`,

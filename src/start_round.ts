@@ -64,7 +64,7 @@ export const getFieldValue = (channelId: string) => {
     for (let [key, value] of emojis) {
         if (!value)
             break;
-        fieldValue += `${key}: ${value.username}\n`;
+        fieldValue += `${key}: ${value}\n`;
     }
     return fieldValue;
 }

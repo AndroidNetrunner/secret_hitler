@@ -10,7 +10,7 @@ export const startVote = async (channelId: string) => {
     for (let player of players) {
         const embed = new MessageEmbed()
         .setTitle('이제 내각에 관한 투표를 할 시간입니다.')
-        .setDescription(`대통령 후보: ${president.username}, 수상 후보: ${chancellor.username}`)
+        .setDescription(`대통령 후보: ${president}, 수상 후보: ${chancellor}`)
         .setFields({
             name: "투표는 아래 버튼을 통해 이루어집니다.",
             value: "찬성한다면 찬성 버튼을, 반대한다면 반대 버튼을 눌러주세요!"
@@ -38,7 +38,7 @@ export const startVote = async (channelId: string) => {
         });
         collector?.on('collect', (interaction) => {
             let content: string | null = null;
-            currentGame.mainChannel.send(`${player.username}님이 투표하셨습니다.`);
+            currentGame.mainChannel.send(`${player}님이 투표하셨습니다.`);
             if (interaction.customId === 'agree') {
                 content = "찬성에 투표하셨습니다.";
                 currentGame.agree.push(interaction.user);

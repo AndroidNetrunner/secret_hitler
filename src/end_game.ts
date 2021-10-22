@@ -23,6 +23,16 @@ export const electHitlerByChancellor = (currentGame : Game_room) => {
     endGame(currentGame, description);
 }
 
+export const makeSuddenDeathByMastermind = (currentGame: Game_room) => {
+    const description = `4번째 자유당 법안 제정 후 5번째 파시스트 법안 제정으로 인한 배후 승리`;
+    endGame(currentGame, description);
+}
+
+export const enactFourthLiberalPolicyByMastermind = (currentGame: Game_room) => {
+    const description = `5번째 파시스트 법안 제정 후 수상으로서 4번째 자유당 법안 제정으로 인한 배후 승리`;
+    endGame(currentGame, description);
+}
+
 const endGame = (currentGame: Game_room, description: string) => {
     const embed = new MessageEmbed()
     .setTitle('게임이 모두 종료되었습니다!')
@@ -39,6 +49,6 @@ const endGame = (currentGame: Game_room, description: string) => {
 
 export const getRoles = (roles: Map<User, Role>) => {
     let value: string = "";
-    roles.forEach((role, user) => value += `${user.username}: ${role}\n`);
+    roles.forEach((role, user) => value += `${user}: ${role}\n`);
     return value;
 }
