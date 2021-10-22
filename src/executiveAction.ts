@@ -90,7 +90,7 @@ const investigateLoyalty = async (currentGame: Game_room) => {
         embeds: [embed],
     });
     addReactions(message, currentGame);
-    const filter = (reaction: MessageReaction, user: User) => user.id === president.id;
+    const filter = (reaction: MessageReaction, user: User) => !!(currentGame.emojis.get(reaction.emoji.toString()) && user.id === president.id);
     const collector = message.createReactionCollector({
         filter, 
         max: 1,
@@ -119,7 +119,7 @@ const addReactions = (message: Message, currentGame: Game_room) => {
 }
 
 const callSpecialElection = async (currentGame: Game_room) => {
-    const president = currentGame.president;
+    const president = currentGame.president as User;
     const embed = new MessageEmbed()
         .setTitle('이제 특별 선거의 후보를 결정할 시간입니다.')
         .setDescription(`${president}님, 특별 선거의 대통령 후보로 지정하고 싶은 1명의 이모티콘을 눌러주세요.`)
@@ -133,7 +133,7 @@ const callSpecialElection = async (currentGame: Game_room) => {
     addReactions(message as Message, currentGame)
     const collector = message?.createReactionCollector({
         max: 1,
-        filter: (reaction, user) => user.id === president?.id,
+        filter: (reaction, user) => !!(currentGame.emojis.get(reaction.emoji.toString()) && user.id === president.id),
     })
     collector?.on('collect', (reaction, user) => {
         reaction.message.delete();
@@ -168,7 +168,7 @@ const policyPeek = (currentGame: Game_room) => {
 }
 
 const execution = async (currentGame: Game_room) => {
-    const president = currentGame.president;
+    const president = currentGame.president as User;
     const embed = new MessageEmbed()
         .setTitle('이제 플레이어를 처형할 시간입니다.')
         .setDescription(`${president}님, 처형하고 싶은 1명의 이모티콘을 눌러주세요.`)
@@ -181,7 +181,7 @@ const execution = async (currentGame: Game_room) => {
     })
     addReactions(message as Message, currentGame)
     const collector = message?.createReactionCollector({
-        filter: (reaction, user) => user.id === president?.id,
+        filter: (reaction, user) => !!(currentGame.emojis.get(reaction.emoji.toString()) && user.id === president.id),
         max: 1,
     })
     collector?.on('collect', (reaction, user) => {

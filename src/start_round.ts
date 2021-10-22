@@ -22,7 +22,7 @@ export const startRound = async (channelId: string) => {
     })
     addReactions(message, channelId);
     const collector = message.createReactionCollector({
-        filter: (reaction, user) => user.id === president.id, 
+        filter: (reaction, user) => !!(currentGame.emojis.get(reaction.emoji.toString()) && user.id === president.id), 
         max: 1,
     })
 

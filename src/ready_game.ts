@@ -17,12 +17,10 @@ export const readyGame = (channelId: string) => {
     setPolicyDeck(channelId);
     printBoard(channelId);
     startRound(channelId);
-    console.log(roleOfPlayers);
 }
 
 const setMastermind = (possibleRoles: Role[], currentGame: Game_room) => {
     const hasMastermind = Math.random() > 0.5;
-    console.log(hasMastermind);
     const currentPossibleRoles = [...possibleRoles];
     if (hasMastermind) {
         currentPossibleRoles.pop();
