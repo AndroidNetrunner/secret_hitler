@@ -7,7 +7,7 @@ const join : ICommand = {
     description: 'new player tries to join',
     callback: ({message}) => {
         const channelOfMessage = message.channel;
-        const currentGamePlayers = active_games.get(message.channelId)?.players;
+        const currentGamePlayers = active_games.get(message.channelId)?.gameStatus.players;
         if (!currentGamePlayers)
             return `시작한 게임이 존재하지 않습니다.`;
         if (currentGamePlayers?.includes(message.author))

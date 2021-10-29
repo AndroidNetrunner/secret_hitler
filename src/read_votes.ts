@@ -6,29 +6,32 @@ import { prepareNextRound, shufflePolicyDeck } from './executiveAction';
 import { FASCIST, HITLER, Policy } from "./board";
 import { completeFascistTrack, completeLiberalTrack, electHitlerByChancellor, makeSuddenDeathByMastermind } from './end_game';
 import { revealsMastermind } from "./executiveAction";
+import { Game_status } from "./Game_status";
+
 export const readVotes = async (currentGame: Game_room) => {
+    const { gameStatus } = currentGame;
     const voteLock = new Mutex();
     const release = await voteLock.acquire();
-    const agree = currentGame.agree;
-    const disagree = currentGame.disagree;
-    if (agree.length + disagree.length >= currentGame.players.length) {
+    const agree = gameStatus.agree;
+    const disagree = gameStatus.disagree;
+    if (agree.length + disagree.length >= gameStatus.players.length) {
         const isElected = revealVotes(currentGame);
-        currentGame.agree = [];
-        currentGame.disagree = [];
+        gameStatus.agree = [];
+        gameStatus.disagree = [];
         if (isElected) {
-            if (currentGame.enactedFascistPolicy >= 3 &&
-                currentGame.roles.get(currentGame.chancellor as User) === HITLER)
+            if (gameStatus.enactedFascistPolicy >= 3 &&
+                currentGame.roles.get(gameStatus.chancellor as User) === HITLER)
                 electHitlerByChancellor(currentGame);
             else
                 startLegislativeSession(currentGame);
         }
         else {
-            currentGame.electionTracker += 1;
-            if (currentGame.electionTracker === 3)
+            gameStatus.electionTracker += 1;
+            if (gameStatus.electionTracker === 3)
                 enactTopPolicy(currentGame);
-            if (currentGame.specialElection) {
-                currentGame.specialElection = false;
-                currentGame.president = currentGame.termLimitedPresident;
+            if (gameStatus.specialElection) {
+                gameStatus.specialElection = false;
+                gameStatus.president = gameStatus.termLimitedPresident;
             }
             prepareNextRound(currentGame);
         }
@@ -37,55 +40,57 @@ export const readVotes = async (currentGame: Game_room) => {
 }
 
 const revealVotes = (currentGame: Game_room) => {
-    const agree = currentGame.agree;
-    const disagree = currentGame.disagree;
-    const electionTracker = currentGame.electionTracker;
-    const result = currentGame.agree.length > currentGame.disagree.length ? `가결` : `부결`;
+    const { gameStatus } = currentGame; 
+    const agree = gameStatus.agree;
+    const disagree = gameStatus.disagree;
+    const electionTracker = gameStatus.electionTracker;
+    const result = gameStatus.agree.length > gameStatus.disagree.length ? `가결` : `부결`;
     const embed = new MessageEmbed()
         .setTitle(`${electionTracker + 1}번째 선거 결과는 다음과 같습니다.`)
         .setDescription(
-            `대통령 후보: ${currentGame.president}, 수상 후보: ${currentGame.chancellor}`
+            `대통령 후보: ${gameStatus.president}, 수상 후보: ${gameStatus.chancellor}`
         )
         .setFields({
             name: `개표 결과, 이번 정부는 ${result}되었습니다.`,
             value: `찬성: ${agree}\n
         반대: ${disagree}`
         })
-    currentGame.mainChannel?.send({
+    currentGame.mainChannel.send({
         embeds: [embed]
-    })
+    });
     return (result === '가결')
 }
 
-export const changePresident = (currentGame: Game_room) => {
-    const { players, president } = currentGame;
+export const changePresident = (gameStatus: Game_status) => {
+    const { players, president } = gameStatus;
     const presidentIndex = players.indexOf(president as User);
-    currentGame.president = players[(presidentIndex + 1) % players.length];
-    return currentGame.president;
+    gameStatus.president = players[(presidentIndex + 1) % players.length];
+    return gameStatus.president;
 }
 
 const enactTopPolicy = (currentGame: Game_room) => {
-    const newPolicy: Policy = currentGame.policyDeck.pop() as Policy;
-    currentGame.electionTracker = 0;
+    const { gameStatus } = currentGame;
+    const newPolicy: Policy = gameStatus.policyDeck.pop() as Policy;
+    gameStatus.electionTracker = 0;
     if (newPolicy === FASCIST) {
         currentGame.mainChannel.send('파시스트 법안이 랜덤으로 제정되었습니다.');
-        if (currentGame.enactedFascistPolicy === 4 && currentGame.enactedLiberalPolicy === 4)
+        if (gameStatus.enactedFascistPolicy === 4 && gameStatus.enactedLiberalPolicy === 4)
             makeSuddenDeathByMastermind(currentGame);
-        if (currentGame.enactedFascistPolicy === 5)
+        if (gameStatus.enactedFascistPolicy === 5)
             completeFascistTrack(currentGame);
         else
-            currentGame.enactedFascistPolicy += 1;
+            gameStatus.enactedFascistPolicy += 1;
     }
     else {
         currentGame.mainChannel.send('자유당 법안이 랜덤으로 제정되었습니다.');
-        if (currentGame.enactedFascistPolicy === 5 && currentGame.enactedLiberalPolicy === 3)
+        if (gameStatus.enactedFascistPolicy === 5 && gameStatus.enactedLiberalPolicy === 3)
             revealsMastermind(currentGame);
-        if (currentGame.enactedLiberalPolicy === 4)
+        if (gameStatus.enactedLiberalPolicy === 4)
             completeLiberalTrack(currentGame);
         else
-            currentGame.enactedLiberalPolicy += 1;
+            gameStatus.enactedLiberalPolicy += 1;
     }
-    if (currentGame.policyDeck.length < 3)
+    if (gameStatus.policyDeck.length < 3)
         shufflePolicyDeck(currentGame);
     prepareNextRound(currentGame);
 }

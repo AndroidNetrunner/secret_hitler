@@ -1,7 +1,7 @@
 import { MessageEmbed } from "discord.js";
 import { ICommand } from "wokcommands";
 import { fascistBoard } from "../board";
-import { Game_room } from "../Game_room";
+import { Game_status } from "../Game_status";
 import { active_games } from "../state";
 
 const track : ICommand = {
@@ -15,18 +15,18 @@ const track : ICommand = {
         .setTitle('현재 각 트랙의 현황은 다음과 같습니다.')
         .setFields([{
             name: '파시스트 트랙',
-            value: getFascistTrack(currentGame)
+            value: getFascistTrack(currentGame.gameStatus)
         }, {
             name: '자유당 트랙',
-            value: currentGame.enactedLiberalPolicy.toString()
+            value: currentGame.gameStatus.enactedLiberalPolicy.toString()
         }])
     }
 }
 
-const getFascistTrack = (currentGame : Game_room) => {
+const getFascistTrack = (gameStatus : Game_status) => {
     let value = "";
-    const { enactedFascistPolicy } = currentGame;
-    const board = fascistBoard[currentGame.players.length as 3 | 5 | 6 | 7 | 8 | 9 | 10];
+    const { enactedFascistPolicy } = gameStatus;
+    const board = fascistBoard[gameStatus.players.length as 3 | 5 | 6 | 7 | 8 | 9 | 10];
     for (let index in board) {
         if (parseInt(index) < enactedFascistPolicy)
             value += `~~${board[index]}~~\n`;

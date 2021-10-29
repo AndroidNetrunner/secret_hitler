@@ -1,9 +1,7 @@
-import DiscordJS, { Intents, User } from 'discord.js';
+import DiscordJS, { Intents } from 'discord.js';
 import WOKCommands from 'wokcommands';
 import path from 'path';
 import dotenv from 'dotenv';
-import { active_games } from './state';
-import { startVote } from './start_vote';
 
 dotenv.config()
 

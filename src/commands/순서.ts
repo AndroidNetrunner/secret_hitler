@@ -9,8 +9,8 @@ const order: ICommand = {
         if (!currentGame || !currentGame.fascistBoard)
             return `현재 시작한 게임이 존재하지 않습니다.`;
         let playerOrder = "";
-        currentGame.players.forEach(player => playerOrder += `${player.username} ->`)
-        playerOrder += currentGame.players[0].username;
+        currentGame.gameStatus.players.forEach(player => playerOrder += `${player.username} ->`)
+        playerOrder += currentGame.gameStatus.players[0].username;
             return playerOrder;
     }
 }
