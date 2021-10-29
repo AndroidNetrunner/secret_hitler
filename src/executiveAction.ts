@@ -9,77 +9,80 @@ import { active_games } from "./state";
 
 export const startExecutiveAction = (currentGame: Game_room, policy: Policy) => {
     const { gameStatus } = currentGame;
-    const { termLimitedPresident } = gameStatus;
+    policy === FASCIST ? enactFascistPolicy(currentGame): enactLiberalPolicy(currentGame);
     gameStatus.termLimitedPresident = gameStatus.president;
     gameStatus.termLimitedChancellor = gameStatus.chancellor;
-    gameStatus.electionTracker = 0;
-    if (policy === FASCIST) {
-        const fascistBoard = currentGame.fascistBoard as FascistBoard;
-        const scheduledPolicy = fascistBoard[gameStatus.enactedFascistPolicy];
-        const embed = new MessageEmbed()
-            .setTitle(`${gameStatus.enactedFascistPolicy + 1}번째 파시스트 법안이 제정되었습니다.`)
-            .setDescription(scheduledPolicy === BLANK ? `` : `${gameStatus.president}님은 ${scheduledPolicy} 권한을 사용할 수 있습니다.`);
-        currentGame.mainChannel.send({
-            embeds: [embed],
-        });
+    gameStatus.electionTracker = 0;    
+}
+
+const enactFascistPolicy = (currentGame: Game_room) => {
+    const { gameStatus } = currentGame;
+    const fascistBoard = currentGame.fascistBoard as FascistBoard;
+    const scheduledPolicy = fascistBoard[gameStatus.enactedFascistPolicy];
+    const embed = new MessageEmbed()
+        .setTitle(`${gameStatus.enactedFascistPolicy + 1}번째 파시스트 법안이 제정되었습니다.`)
+        .setDescription(scheduledPolicy === BLANK ? `` : `${gameStatus.president}님은 ${scheduledPolicy} 권한을 사용할 수 있습니다.`);
+    currentGame.mainChannel.send({
+        embeds: [embed],
+    });
+    if (gameStatus.policyDeck.length < 3)
+        shufflePolicyDeck(currentGame);
+    switch (scheduledPolicy) {
+        case INVESTIGATE_LOYALTY:
+            investigateLoyalty(currentGame);
+            break;
+        case CALL_SPECIAL_ELECTION:
+            callSpecialElection(currentGame);
+            break;
+        case POLICY_PEEK:
+            policyPeek(currentGame);
+            break;
+        case EXECUTION:
+            execution(currentGame);
+            break;
+        case FASCIST_WIN:
+            completeFascistTrack(currentGame);
+            break;
+        default:
+            prepareNextRound(currentGame);
+    }
+    if (gameStatus.enactedFascistPolicy < 5)
+        gameStatus.enactedFascistPolicy += 1;
+}
+
+const enactLiberalPolicy = (currentGame: Game_room) => {
+    const { gameStatus } = currentGame;
+    const { termLimitedPresident } = gameStatus;
+    const embed = new MessageEmbed()
+        .setTitle(`${gameStatus.enactedLiberalPolicy + 1}번째 자유당 법안이 제정되었습니다.`)
+    if (gameStatus.enactedFascistPolicy === 5 &&
+        gameStatus.enactedLiberalPolicy === 4) {
+        if (currentGame.roles.get(gameStatus.chancellor as User) === MASTERMIND) {
+            enactFourthLiberalPolicyByMastermind(currentGame);
+            return;
+        }
+        revealsMastermind(currentGame);
+    }
+    currentGame.mainChannel.send({
+        embeds: [embed],
+    });
+    if (gameStatus.enactedLiberalPolicy === 4)
+        completeLiberalTrack(currentGame);
+    else {
+        gameStatus.enactedLiberalPolicy += 1;
         if (gameStatus.policyDeck.length < 3)
             shufflePolicyDeck(currentGame);
-        switch (scheduledPolicy) {
-            case INVESTIGATE_LOYALTY:
-                investigateLoyalty(currentGame);
-                break;
-            case CALL_SPECIAL_ELECTION:
-                callSpecialElection(currentGame);
-                break;
-            case POLICY_PEEK:
-                policyPeek(currentGame);
-                break;
-            case EXECUTION:
-                execution(currentGame);
-                break;
-            case FASCIST_WIN:
-                completeFascistTrack(currentGame);
-                break;
-            default:
-                prepareNextRound(currentGame);
-        }
-        if (gameStatus.enactedFascistPolicy < 5)
-            gameStatus.enactedFascistPolicy += 1;
-    }
-    else {
-        const embed = new MessageEmbed()
-            .setTitle(`${gameStatus.enactedLiberalPolicy + 1}번째 자유당 법안이 제정되었습니다.`)
-        if (gameStatus.enactedFascistPolicy === 5 &&
-            gameStatus.enactedLiberalPolicy === 4) 
-            {
-            if (currentGame.roles.get(gameStatus.chancellor as User) === MASTERMIND) {
-                enactFourthLiberalPolicyByMastermind(currentGame);
-                return;
-            }
-            else
-                revealsMastermind(currentGame);
-        }
-        currentGame.mainChannel.send({
-            embeds: [embed],
-        });
-        if (gameStatus.enactedLiberalPolicy === 4)
-            completeLiberalTrack(currentGame);
-        else {
-            gameStatus.enactedLiberalPolicy += 1;
-            if (gameStatus.policyDeck.length < 3)
-                shufflePolicyDeck(currentGame);
-            prepareNextRound(currentGame, termLimitedPresident as User);
-        }
+        prepareNextRound(currentGame, termLimitedPresident as User);
     }
 }
 
 export const revealsMastermind = (currentGame: Game_room) => {
-    let mastermind : User | null = null;
+    let mastermind: User | null = null;
     currentGame.roles.forEach((role, user) => role === MASTERMIND ? mastermind = user : null)
     if (mastermind)
         currentGame.mainChannel.send(`배후의 정체가 드러났습니다! 배후는 ${mastermind}입니다.`);
     currentGame.gameStatus.players = currentGame.gameStatus.players.filter(player => player !== mastermind);
-    let mastermindEmoji : string = "";
+    let mastermindEmoji: string = "";
     currentGame.emojis.forEach((user, emoji) => user === mastermind ? mastermindEmoji = emoji : null);
     currentGame.emojis.delete(mastermindEmoji);
 }
