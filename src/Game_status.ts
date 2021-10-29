@@ -11,8 +11,8 @@ interface GameStatus {
     specialElection: boolean,
     agree: User[],
     disagree: User[],
-    enactedFascistPolicy: 0 | 1 | 2 | 3 | 4 | 5,
-    enactedLiberalPolicy: 0 | 1 | 2 | 3 | 4,
+    enactedFascistPolicy: 0 | 1 | 2 | 3 | 4 | 5 | 6,
+    enactedLiberalPolicy: 0 | 1 | 2 | 3 | 4 | 5,
     policyDeck: Policy[],
 }
 
@@ -26,7 +26,7 @@ export class Game_status implements GameStatus {
     specialElection: boolean = false;
     agree: User[] = [];
     disagree: User[] = [];
-    enactedFascistPolicy: 0 | 1 | 2 | 3 | 4 | 5 = 0;
-    enactedLiberalPolicy: 0 | 1 | 2 | 3 | 4 = 0;
+    enactedFascistPolicy: 0 | 1 | 2 | 3 | 4 | 5 | 6 = 0;
+    enactedLiberalPolicy: 0 | 1 | 2 | 3 | 4 | 5 = 0;
     policyDeck: Policy[] = [LIBERAL, LIBERAL, LIBERAL, LIBERAL, LIBERAL, LIBERAL, FASCIST, FASCIST, FASCIST, FASCIST, FASCIST, FASCIST, FASCIST, FASCIST, FASCIST, FASCIST, FASCIST];
 }

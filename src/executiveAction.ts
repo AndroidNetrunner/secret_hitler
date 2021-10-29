@@ -17,10 +17,11 @@ export const startExecutiveAction = (currentGame: Game_room, policy: Policy) => 
 
 const enactFascistPolicy = (currentGame: Game_room) => {
     const { gameStatus } = currentGame;
+    gameStatus.enactedFascistPolicy += 1;
     const fascistBoard = currentGame.fascistBoard as FascistBoard;
-    const scheduledPolicy = fascistBoard[gameStatus.enactedFascistPolicy];
+    const scheduledPolicy = fascistBoard[gameStatus.enactedFascistPolicy - 1];
     const embed = new MessageEmbed()
-        .setTitle(`${gameStatus.enactedFascistPolicy + 1}번째 파시스트 법안이 제정되었습니다.`)
+        .setTitle(`${gameStatus.enactedFascistPolicy}번째 파시스트 법안이 제정되었습니다.`)
         .setDescription(scheduledPolicy === BLANK ? `` : `${gameStatus.president}님은 ${scheduledPolicy} 권한을 사용할 수 있습니다.`);
     currentGame.mainChannel.send({
         embeds: [embed],
@@ -46,15 +47,14 @@ const enactFascistPolicy = (currentGame: Game_room) => {
         default:
             prepareNextRound(currentGame);
     }
-    if (gameStatus.enactedFascistPolicy < 5)
-        gameStatus.enactedFascistPolicy += 1;
 }
 
 const enactLiberalPolicy = (currentGame: Game_room) => {
     const { gameStatus } = currentGame;
+    gameStatus.enactedLiberalPolicy += 1;
     const { termLimitedPresident } = gameStatus;
     const embed = new MessageEmbed()
-        .setTitle(`${gameStatus.enactedLiberalPolicy + 1}번째 자유당 법안이 제정되었습니다.`)
+        .setTitle(`${gameStatus.enactedLiberalPolicy}번째 자유당 법안이 제정되었습니다.`)
     if (gameStatus.enactedFascistPolicy === 5 &&
         gameStatus.enactedLiberalPolicy === 4) {
         if (currentGame.roles.get(gameStatus.chancellor as User) === MASTERMIND) {
@@ -66,10 +66,9 @@ const enactLiberalPolicy = (currentGame: Game_room) => {
     currentGame.mainChannel.send({
         embeds: [embed],
     });
-    if (gameStatus.enactedLiberalPolicy === 4)
+    if (gameStatus.enactedLiberalPolicy === 5)
         completeLiberalTrack(currentGame);
     else {
-        gameStatus.enactedLiberalPolicy += 1;
         if (gameStatus.policyDeck.length < 3)
             shufflePolicyDeck(currentGame);
         prepareNextRound(currentGame, termLimitedPresident as User);

@@ -74,21 +74,19 @@ const enactTopPolicy = (currentGame: Game_room) => {
     gameStatus.electionTracker = 0;
     if (newPolicy === FASCIST) {
         currentGame.mainChannel.send('파시스트 법안이 랜덤으로 제정되었습니다.');
-        if (gameStatus.enactedFascistPolicy === 4 && gameStatus.enactedLiberalPolicy === 4)
+        gameStatus.enactedFascistPolicy += 1;
+        if (gameStatus.enactedFascistPolicy === 5 && gameStatus.enactedLiberalPolicy === 4)
             makeSuddenDeathByMastermind(currentGame);
-        if (gameStatus.enactedFascistPolicy === 5)
+        if (gameStatus.enactedFascistPolicy === 6)
             completeFascistTrack(currentGame);
-        else
-            gameStatus.enactedFascistPolicy += 1;
     }
     else {
         currentGame.mainChannel.send('자유당 법안이 랜덤으로 제정되었습니다.');
-        if (gameStatus.enactedFascistPolicy === 5 && gameStatus.enactedLiberalPolicy === 3)
+        gameStatus.enactedLiberalPolicy += 1;
+        if (gameStatus.enactedFascistPolicy === 5 && gameStatus.enactedLiberalPolicy === 4)
             revealsMastermind(currentGame);
-        if (gameStatus.enactedLiberalPolicy === 4)
+        if (gameStatus.enactedLiberalPolicy === 5)
             completeLiberalTrack(currentGame);
-        else
-            gameStatus.enactedLiberalPolicy += 1;
     }
     if (gameStatus.policyDeck.length < 3)
         shufflePolicyDeck(currentGame);
