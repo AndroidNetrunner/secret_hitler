@@ -14,33 +14,28 @@ export const readVotes = async (currentGame: Game_room) => {
     const release = await voteLock.acquire();
     const agree = gameStatus.agree;
     const disagree = gameStatus.disagree;
-    if (agree.length + disagree.length >= gameStatus.players.length) {
-        const isElected = revealVotes(currentGame);
-        gameStatus.agree = [];
-        gameStatus.disagree = [];
-        if (isElected) {
-            if (gameStatus.enactedFascistPolicy >= 3 &&
-                currentGame.roles.get(gameStatus.chancellor as User) === HITLER)
-                electHitlerByChancellor(currentGame);
-            else
-                startLegislativeSession(currentGame);
-        }
-        else {
-            gameStatus.electionTracker += 1;
-            if (gameStatus.electionTracker === 3)
-                enactTopPolicy(currentGame);
-            if (gameStatus.specialElection) {
-                gameStatus.specialElection = false;
-                gameStatus.president = gameStatus.termLimitedPresident;
-            }
-            prepareNextRound(currentGame);
-        }
+    if (agree.length + disagree.length < gameStatus.players.length)
+        return;
+    const isElected = revealVotes(currentGame);
+    gameStatus.agree = [];
+    gameStatus.disagree = [];
+    if (isElected)
+        return electHitlerAfterThreeFacistPolicies(currentGame) ? electHitlerByChancellor(currentGame) : startLegislativeSession(currentGame);
+    gameStatus.electionTracker += 1;
+    if (gameStatus.electionTracker === 3)
+        enactTopPolicy(currentGame);
+    if (gameStatus.specialElection) {
+        gameStatus.specialElection = false;
+        gameStatus.president = gameStatus.termLimitedPresident;
     }
+    prepareNextRound(currentGame);
     release();
 }
 
+const electHitlerAfterThreeFacistPolicies = (currentGame : Game_room) => currentGame.gameStatus.enactedFascistPolicy >= 3 && currentGame.roles.get(currentGame.gameStatus.chancellor as User) === HITLER
+ 
 const revealVotes = (currentGame: Game_room) => {
-    const { gameStatus } = currentGame; 
+    const { gameStatus } = currentGame;
     const agree = gameStatus.agree;
     const disagree = gameStatus.disagree;
     const electionTracker = gameStatus.electionTracker;
@@ -72,23 +67,31 @@ const enactTopPolicy = (currentGame: Game_room) => {
     const { gameStatus } = currentGame;
     const newPolicy: Policy = gameStatus.policyDeck.pop() as Policy;
     gameStatus.electionTracker = 0;
-    if (newPolicy === FASCIST) {
-        currentGame.mainChannel.send('파시스트 법안이 랜덤으로 제정되었습니다.');
-        gameStatus.enactedFascistPolicy += 1;
-        if (gameStatus.enactedFascistPolicy === 5 && gameStatus.enactedLiberalPolicy === 4)
-            makeSuddenDeathByMastermind(currentGame);
-        if (gameStatus.enactedFascistPolicy === 6)
-            completeFascistTrack(currentGame);
-    }
-    else {
-        currentGame.mainChannel.send('자유당 법안이 랜덤으로 제정되었습니다.');
-        gameStatus.enactedLiberalPolicy += 1;
-        if (gameStatus.enactedFascistPolicy === 5 && gameStatus.enactedLiberalPolicy === 4)
-            revealsMastermind(currentGame);
-        if (gameStatus.enactedLiberalPolicy === 5)
-            completeLiberalTrack(currentGame);
-    }
+    if (newPolicy === FASCIST)
+        enactTopFacistPolicy(currentGame);
+    else
+        enactTopLiberalPolicy(currentGame);
     if (gameStatus.policyDeck.length < 3)
         shufflePolicyDeck(currentGame);
     prepareNextRound(currentGame);
+}
+
+const enactTopFacistPolicy = (currentGame: Game_room) => {
+    const { gameStatus } = currentGame;
+    currentGame.mainChannel.send('파시스트 법안이 랜덤으로 제정되었습니다.');
+    gameStatus.enactedFascistPolicy += 1;
+    if (gameStatus.enactedFascistPolicy === 5 && gameStatus.enactedLiberalPolicy === 4)
+        makeSuddenDeathByMastermind(currentGame);
+    if (gameStatus.enactedFascistPolicy === 6)
+        completeFascistTrack(currentGame);
+}
+
+const enactTopLiberalPolicy = (currentGame: Game_room) => {
+    const { gameStatus } = currentGame;
+    currentGame.mainChannel.send('자유당 법안이 랜덤으로 제정되었습니다.');
+    gameStatus.enactedLiberalPolicy += 1;
+    if (gameStatus.enactedFascistPolicy === 5 && gameStatus.enactedLiberalPolicy === 4)
+        revealsMastermind(currentGame);
+    if (gameStatus.enactedLiberalPolicy === 5)
+        completeLiberalTrack(currentGame);
 }
