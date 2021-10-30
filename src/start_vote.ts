@@ -2,7 +2,7 @@ import { MessageActionRow, MessageButton, MessageEmbed, User } from 'discord.js'
 import { Game_room } from './Game_room';
 import { readVotes } from './read_votes';
 
-export const startVote = async (currentGame: Game_room) => {
+export const startVote = async (currentGame: Game_room) : Promise<void> => {
     const { gameStatus } = currentGame;
     const players = gameStatus.players as User[];
     const president = gameStatus.president as User;

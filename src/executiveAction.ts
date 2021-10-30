@@ -7,7 +7,7 @@ import { changePresident } from "./read_votes";
 import { getFieldValue, startRound } from "./start_round";
 import { active_games } from "./state";
 
-export const startExecutiveAction = (currentGame: Game_room, policy: Policy) => {
+export const startExecutiveAction = (currentGame: Game_room, policy: Policy) : void => {
     const { gameStatus } = currentGame;
     policy === FASCIST ? enactFascistPolicy(currentGame): enactLiberalPolicy(currentGame);
     gameStatus.termLimitedPresident = gameStatus.president;
@@ -15,7 +15,7 @@ export const startExecutiveAction = (currentGame: Game_room, policy: Policy) => 
     gameStatus.electionTracker = 0;    
 }
 
-const enactFascistPolicy = (currentGame: Game_room) => {
+const enactFascistPolicy = (currentGame: Game_room) : void => {
     const { gameStatus } = currentGame;
     gameStatus.enactedFascistPolicy += 1;
     const fascistBoard = currentGame.fascistBoard as FascistBoard;
@@ -49,7 +49,7 @@ const enactFascistPolicy = (currentGame: Game_room) => {
     }
 }
 
-const enactLiberalPolicy = (currentGame: Game_room) => {
+const enactLiberalPolicy = (currentGame: Game_room) : void => {
     const { gameStatus } = currentGame;
     gameStatus.enactedLiberalPolicy += 1;
     const { termLimitedPresident } = gameStatus;
@@ -75,7 +75,7 @@ const enactLiberalPolicy = (currentGame: Game_room) => {
     }
 }
 
-export const revealsMastermind = (currentGame: Game_room) => {
+export const revealsMastermind = (currentGame: Game_room) : void => {
     let mastermind: User | null = null;
     currentGame.roles.forEach((role, user) => role === MASTERMIND ? mastermind = user : null)
     if (mastermind)
@@ -86,7 +86,7 @@ export const revealsMastermind = (currentGame: Game_room) => {
     currentGame.emojis.delete(mastermindEmoji);
 }
 
-export const shufflePolicyDeck = (currentGame: Game_room) => {
+export const shufflePolicyDeck = (currentGame: Game_room) : void => {
     const { gameStatus } = currentGame;
     const remainedFascistPolicy = currentGame.numberOfInitialPolicy - 6 - gameStatus.enactedFascistPolicy;
     const remainedLiberalPolicy = 6 - gameStatus.enactedLiberalPolicy;
@@ -95,7 +95,7 @@ export const shufflePolicyDeck = (currentGame: Game_room) => {
     gameStatus.policyDeck = shuffle(fascistPolicyDeck.concat(liberalPolicyDeck));
 }
 
-const investigateLoyalty = async (currentGame: Game_room) => {
+const investigateLoyalty = async (currentGame: Game_room) : Promise<void> => {
     const { gameStatus } = currentGame;
     const roles = currentGame.roles;
     const president = gameStatus.president;
@@ -127,7 +127,7 @@ const investigateLoyalty = async (currentGame: Game_room) => {
     });
 }
 
-const addReactions = (message: Message, currentGame: Game_room) => {
+const addReactions = (message: Message, currentGame: Game_room) : void => {
     const emojis = currentGame.emojis as Emojis;
     const president = currentGame.gameStatus.president as User;
     for (let [emoji, player] of emojis) {
@@ -138,7 +138,7 @@ const addReactions = (message: Message, currentGame: Game_room) => {
     }
 }
 
-const callSpecialElection = async (currentGame: Game_room) => {
+const callSpecialElection = async (currentGame: Game_room) : Promise<void> => {
     const president = currentGame.gameStatus.president as User;
     const embed = new MessageEmbed()
         .setTitle('이제 특별 선거의 후보를 결정할 시간입니다.')
@@ -162,14 +162,14 @@ const callSpecialElection = async (currentGame: Game_room) => {
     });
 }
 
-const startSpecialElection = (currentGame: Game_room, target: User) => {
+const startSpecialElection = (currentGame: Game_room, target: User) : void => {
     const { gameStatus } = currentGame;
     gameStatus.specialElection = true
     changePresident(gameStatus);
     startRound(currentGame);
 }
 
-export const prepareNextRound = (currentGame: Game_room, termLimitedPresident?: User) => {
+export const prepareNextRound = (currentGame: Game_room, termLimitedPresident?: User) : void => {
     const { gameStatus } = currentGame;
     if (!active_games.get(currentGame.mainChannel.id))
         return
@@ -182,7 +182,7 @@ export const prepareNextRound = (currentGame: Game_room, termLimitedPresident?: 
     startRound(currentGame);
 }
 
-const policyPeek = (currentGame: Game_room) => {
+const policyPeek = (currentGame: Game_room) : void => {
     const { gameStatus } = currentGame;
     const president = gameStatus.president as User;
     const topPolicies = gameStatus.policyDeck.slice(-3).reverse();
@@ -190,7 +190,7 @@ const policyPeek = (currentGame: Game_room) => {
     prepareNextRound(currentGame);
 }
 
-const execution = async (currentGame: Game_room) => {
+const execution = async (currentGame: Game_room) : Promise<void> => {
     const { gameStatus } = currentGame;
     const president = gameStatus.president as User;
     const embed = new MessageEmbed()

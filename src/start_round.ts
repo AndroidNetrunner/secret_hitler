@@ -3,7 +3,7 @@ import { Emojis, Game_room } from "./Game_room";
 import { Game_status } from "./Game_status";
 import { startVote } from "./start_vote";
 
-export const startRound = async (currentGame: Game_room) => {
+export const startRound = async (currentGame: Game_room) : Promise<void> => {
     const { gameStatus } = currentGame;
     const president = gameStatus.president as User;
     const mainChannel = currentGame.mainChannel;
@@ -36,25 +36,23 @@ export const startRound = async (currentGame: Game_room) => {
     })
 }
 
-const getDescription = (gameStatus: Game_status) => {
+const getDescription = (gameStatus: Game_status) : string => {
     const ineligibleNominees = getIneligibleNominees(gameStatus);
     const currentPresident = `현재 대통령: ${gameStatus.president}\n`;
-    if (!ineligibleNominees)
-        return currentPresident;
-    return currentPresident + `수상 후보로 지목할 수 없는 플레이어: ${ineligibleNominees}`;
+    return ineligibleNominees.length ? currentPresident + `수상 후보로 지목할 수 없는 플레이어: ${ineligibleNominees}` : currentPresident;
 }
 
-const getIneligibleNominees = (gameStatus: Game_status) => {
+const getIneligibleNominees = (gameStatus: Game_status) : User[] => {
     const { termLimitedPresident, termLimitedChancellor } = gameStatus;
     const numberOfPlayers = gameStatus.players.length;
     if (!(termLimitedPresident || termLimitedChancellor))
-        return;
+        return [];
     if (numberOfPlayers <= 5)
-        return [termLimitedPresident];
-    return [termLimitedPresident, termLimitedChancellor];
+        return [termLimitedPresident] as User[];
+    return [termLimitedPresident, termLimitedChancellor] as User[];
 }
 
-export const getFieldValue = (currentGame: Game_room) => {
+export const getFieldValue = (currentGame: Game_room) : string => {
     const { emojis } = currentGame;
     let fieldValue = "";
     for (let [key, value] of emojis) {
@@ -65,7 +63,7 @@ export const getFieldValue = (currentGame: Game_room) => {
     return fieldValue;
 }
 
-const addReactions = (message: Message, currentGame: Game_room) => {
+const addReactions = (message: Message, currentGame: Game_room) : void => {
     const { gameStatus } = currentGame;
     const emojis = currentGame.emojis as Emojis;
     const ineligibleNominees = getIneligibleNominees(gameStatus);

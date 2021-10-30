@@ -6,7 +6,7 @@ import { Game_status } from "./Game_status";
 import { startRound } from "./start_round";
 import { active_games } from "./state";
 
-export const readyGame = (channelId: string) => {
+export const readyGame = (channelId: string) : void => {
     const currentGame = active_games.get(channelId) as Game_room;
     const { gameStatus } = currentGame;
     const roleOfPlayers = assignRoles(currentGame);
@@ -20,7 +20,7 @@ export const readyGame = (channelId: string) => {
     startRound(currentGame);
 }
 
-const setMastermind = (possibleRoles: Role[], currentGame: Game_room) => {
+const setMastermind = (possibleRoles: Role[], currentGame: Game_room) : Role[] => {
     const hasMastermind = Math.random() > 0.5;
     const currentPossibleRoles = [...possibleRoles];
     if (hasMastermind) {
@@ -42,7 +42,7 @@ const assignRoles = (currentGame: Game_room): Map<User, Role> => {
     return roleOfPlayers;
 }
 
-const notifyRoles = (roleOfPlayers: Map<User, Role>) => {
+const notifyRoles = (roleOfPlayers: Map<User, Role>) : void => {
     roleOfPlayers.forEach((role, player) => {
         const description = decideDescriptionByRole(player, roleOfPlayers);
         let color: "BLUE" | "RED" | "GREEN";
@@ -67,12 +67,12 @@ const notifyRoles = (roleOfPlayers: Map<User, Role>) => {
     })
 };
 
-const decideFirstPresident = (gameStatus: Game_status) => {
-    const players = gameStatus.players as User[];
+const decideFirstPresident = (gameStatus: Game_status) : void => {
+    const players = gameStatus.players;
     gameStatus.president = choose(players);
 }
 
-const getWhoAreFascists = (player: User, roleOfPlayers: Map<User, Role>) => {
+const getWhoAreFascists = (player: User, roleOfPlayers: Map<User, Role>) : string => {
     let fascists: User[] = [];
     roleOfPlayers.forEach((role, opponent) => {
         if (opponent === player)
@@ -80,18 +80,14 @@ const getWhoAreFascists = (player: User, roleOfPlayers: Map<User, Role>) => {
         if (role === FASCIST)
             fascists.push(opponent)
     })
-    return fascists.length ? fascists : `(존재하지 않음)`;
+    return fascists.length ? fascists.toString() : `(존재하지 않음)`;
 }
 
-const getWhoIsHitler = (player: User, roleOfPlayers: Map<User, Role>) => {
-    let hitler: User | null = null;
-    roleOfPlayers.forEach((role, opponent) => {
-        if (opponent === player)
-            return
+const getWhoIsHitler = (roleOfPlayers: Map<User, Role>) : User => {
+    for (let [opponent, role] of roleOfPlayers)
         if (role === HITLER)
-            hitler = opponent;
-    })
-    return hitler;
+            return opponent;
+    throw new Error("No hitler in roles");
 }
 
 const decideDescriptionByRole = (player: User, roleOfPlayers: Map<User, Role>): string => {
@@ -105,7 +101,7 @@ const decideDescriptionByRole = (player: User, roleOfPlayers: Map<User, Role>): 
         case LIBERAL:
             return '히틀러를 암살하거나, 자유당 법안 트랙을 모두 채워 게임에서 승리하세요!';
         case FASCIST:
-            return `당신의 파시스트 동료는 ${getWhoAreFascists(player, roleOfPlayers)}이며, 히틀러는 ${getWhoIsHitler(player, roleOfPlayers)}입니다!`;
+            return `당신의 파시스트 동료는 ${getWhoAreFascists(player, roleOfPlayers)}이며, 히틀러는 ${getWhoIsHitler(roleOfPlayers)}입니다!`;
         case MASTERMIND:
             return `4번째 자유당 법안을 제정한 뒤, 5번째 파시스트 법안이 제정하고 암살당하지 않으면 게임에서 승리합니다.
             만약 5번째 파시스트 법안이 먼저 제정되었다면, 4번째 자유당 법안을 제정한 수상이 되었을 때 승리합니다!`
@@ -114,12 +110,12 @@ const decideDescriptionByRole = (player: User, roleOfPlayers: Map<User, Role>): 
     }
 }
 
-const selectBoard = (currentGame: Game_room) => {
+const selectBoard = (currentGame: Game_room) : void => {
     const numberOfPlayers = currentGame.gameStatus.players.length as 5 | 6 | 7 | 8 | 9 | 10;
     currentGame.fascistBoard = fascistBoard[numberOfPlayers];
 }
 
-const printBoard = (currentGame : Game_room) => {
+const printBoard = (currentGame : Game_room) : void => {
     const { fascistBoard, mainChannel } = currentGame;
     if (!fascistBoard)
         return;
@@ -132,7 +128,7 @@ const printBoard = (currentGame : Game_room) => {
     })
 }
 
-const setPolicyDeck = (currentGame : Game_room) => {
+const setPolicyDeck = (currentGame : Game_room) : void => {
     const { gameStatus } = currentGame;
     if (currentGame.balance) {
         const { length } = gameStatus.players;
@@ -152,13 +148,13 @@ const setPolicyDeck = (currentGame : Game_room) => {
     gameStatus.policyDeck = shuffle(gameStatus.policyDeck);
 }
 
-const setEmoji = (currentGame: Game_room) => {
+const setEmoji = (currentGame: Game_room) : void => {
     const players = currentGame.gameStatus.players as User[];
     for (let index = 0; index < 10; index++)
         currentGame.emojis.set(`${index.toString()}\u20E3`, players[index]);
 }
 
-export function shuffle(array: any[]) {
+export function shuffle(array: any[]) : any[] {
     let currentIndex = array.length, randomIndex;
     while (currentIndex != 0) {
         randomIndex = Math.floor(Math.random() * currentIndex);

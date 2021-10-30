@@ -3,7 +3,8 @@ import { LIBERAL, Policy } from "./board";
 import { Game_room } from "./Game_room";
 import { shuffle } from "./ready_game";
 import { prepareNextRound, startExecutiveAction } from './executiveAction';
-export const startLegislativeSession = (currentGame: Game_room) => {
+
+export const startLegislativeSession = (currentGame: Game_room) : void => {
     const { gameStatus } = currentGame;
     const first = gameStatus.policyDeck.pop();
     const second = gameStatus.policyDeck.pop();
@@ -12,7 +13,7 @@ export const startLegislativeSession = (currentGame: Game_room) => {
     presidentChoosePolicy(currentGame, drawedPolicies);
 }
 
-const presidentChoosePolicy = async (currentGame: Game_room, drawedPolicies: Policy[]) => {
+const presidentChoosePolicy = async (currentGame: Game_room, drawedPolicies: Policy[]) : Promise<void> => {
     const { gameStatus } = currentGame;
     const president = gameStatus.president;
     const embed = new MessageEmbed()
@@ -34,7 +35,7 @@ const presidentChoosePolicy = async (currentGame: Game_room, drawedPolicies: Pol
     })
 };
 
-const chancellorChoosePolicy = async (currentGame: Game_room, drawedPolicies: Policy[]) => {
+const chancellorChoosePolicy = async (currentGame: Game_room, drawedPolicies: Policy[]) : Promise<void> => {
     const { gameStatus } = currentGame;
     const chancellor = gameStatus.chancellor;
     const embed = new MessageEmbed()
@@ -79,7 +80,7 @@ const getPolicyButton = (drawedPolicies: Policy[]): MessageActionRow => {
     return actionRow;
 }
 
-const vetoPower = async (currentGame: Game_room, drawedPolicies: Policy[]) => {
+const vetoPower = async (currentGame: Game_room, drawedPolicies: Policy[]) : Promise<void> => {
     const { gameStatus } = currentGame;
     const president = gameStatus.president;
     const embed = new MessageEmbed()
@@ -121,7 +122,7 @@ const vetoPower = async (currentGame: Game_room, drawedPolicies: Policy[]) => {
     })
 }
 
-const vetoRefused = async (currentGame: Game_room, drawedPolicies: Policy[]) => {
+const vetoRefused = async (currentGame: Game_room, drawedPolicies: Policy[]) : Promise<void> => {
     currentGame.mainChannel.send({
         content: '거부권 사용이 반려되었습니다.',
     })
