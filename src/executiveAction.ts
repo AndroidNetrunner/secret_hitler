@@ -2,20 +2,19 @@ import { Message, MessageEmbed, MessageReaction, User } from "discord.js";
 import { BLANK, CALL_SPECIAL_ELECTION, EXECUTION, FASCIST, FascistBoard, FASCIST_WIN, HITLER, INVESTIGATE_LOYALTY, LIBERAL, MASTERMIND, Policy, POLICY_PEEK } from "./board";
 import { completeFascistTrack, completeLiberalTrack, enactFourthLiberalPolicyByMastermind, executeHitler, makeSuddenDeathByMastermind } from "./end_game";
 import { Emojis, Game_room } from "./Game_room";
+import { Game_status } from "./Game_status";
 import { shuffle } from "./ready_game";
 import { changePresident } from "./read_votes";
 import { getFieldValue, startRound } from "./start_round";
 import { active_games } from "./state";
 
-export const startExecutiveAction = (currentGame: Game_room, policy: Policy) : void => {
-    const { gameStatus } = currentGame;
-    policy === FASCIST ? enactFascistPolicy(currentGame): enactLiberalPolicy(currentGame);
+export const endExecutiveAction = (gameStatus: Game_status): void => {
     gameStatus.termLimitedPresident = gameStatus.president;
     gameStatus.termLimitedChancellor = gameStatus.chancellor;
-    gameStatus.electionTracker = 0;    
+    gameStatus.electionTracker = 0;
 }
 
-const enactFascistPolicy = (currentGame: Game_room) : void => {
+export const enactFascistPolicy = (currentGame: Game_room): void => {
     const { gameStatus } = currentGame;
     gameStatus.enactedFascistPolicy += 1;
     const fascistBoard = currentGame.fascistBoard as FascistBoard;
@@ -49,20 +48,14 @@ const enactFascistPolicy = (currentGame: Game_room) : void => {
     }
 }
 
-const enactLiberalPolicy = (currentGame: Game_room) : void => {
+export const enactLiberalPolicy = (currentGame: Game_room): void => {
     const { gameStatus } = currentGame;
     gameStatus.enactedLiberalPolicy += 1;
     const { termLimitedPresident } = gameStatus;
     const embed = new MessageEmbed()
         .setTitle(`${gameStatus.enactedLiberalPolicy}번째 자유당 법안이 제정되었습니다.`)
-    if (gameStatus.enactedFascistPolicy === 5 &&
-        gameStatus.enactedLiberalPolicy === 4) {
-        if (currentGame.roles.get(gameStatus.chancellor as User) === MASTERMIND) {
-            enactFourthLiberalPolicyByMastermind(currentGame);
-            return;
-        }
-        revealsMastermind(currentGame);
-    }
+    if (gameStatus.enactedFascistPolicy === 5 && gameStatus.enactedLiberalPolicy === 4 && checkWinningOfMastermind(currentGame))
+        return;
     currentGame.mainChannel.send({
         embeds: [embed],
     });
@@ -75,18 +68,28 @@ const enactLiberalPolicy = (currentGame: Game_room) : void => {
     }
 }
 
-export const revealsMastermind = (currentGame: Game_room) : void => {
+const checkWinningOfMastermind = (currentGame: Game_room) => {
+    if (currentGame.roles.get(currentGame.gameStatus.chancellor as User) === MASTERMIND) { 
+        enactFourthLiberalPolicyByMastermind(currentGame);
+        return true;
+    }
+    revealsMastermind(currentGame);
+    return false;
+}
+
+export const revealsMastermind = (currentGame: Game_room): void => {
     let mastermind: User | null = null;
     currentGame.roles.forEach((role, user) => role === MASTERMIND ? mastermind = user : null)
-    if (mastermind)
-        currentGame.mainChannel.send(`배후의 정체가 드러났습니다! 배후는 ${mastermind}입니다.`);
+    if (!mastermind)
+        return;
+    currentGame.mainChannel.send(`배후의 정체가 드러났습니다! 배후는 ${mastermind}입니다.`);
     currentGame.gameStatus.players = currentGame.gameStatus.players.filter(player => player !== mastermind);
     let mastermindEmoji: string = "";
     currentGame.emojis.forEach((user, emoji) => user === mastermind ? mastermindEmoji = emoji : null);
     currentGame.emojis.delete(mastermindEmoji);
 }
 
-export const shufflePolicyDeck = (currentGame: Game_room) : void => {
+export const shufflePolicyDeck = (currentGame: Game_room): void => {
     const { gameStatus } = currentGame;
     const remainedFascistPolicy = currentGame.numberOfInitialPolicy - 6 - gameStatus.enactedFascistPolicy;
     const remainedLiberalPolicy = 6 - gameStatus.enactedLiberalPolicy;
@@ -95,7 +98,7 @@ export const shufflePolicyDeck = (currentGame: Game_room) : void => {
     gameStatus.policyDeck = shuffle(fascistPolicyDeck.concat(liberalPolicyDeck));
 }
 
-const investigateLoyalty = async (currentGame: Game_room) : Promise<void> => {
+const investigateLoyalty = async (currentGame: Game_room): Promise<void> => {
     const { gameStatus } = currentGame;
     const roles = currentGame.roles;
     const president = gameStatus.president;
@@ -121,13 +124,13 @@ const investigateLoyalty = async (currentGame: Game_room) : Promise<void> => {
         reaction.message.channel.send(`${target}을 대통령이 조사하였습니다.`);
         reaction.message.delete()
         president?.send({
-            content: `${target}의 소속은 ${role === LIBERAL ? '자유당' : '파시스트'}입니다.`,
+            content: `${target}의 소속은 ${role === LIBERAL ? LIBERAL : FASCIST}입니다.`,
         })
         prepareNextRound(currentGame);
     });
 }
 
-const addReactions = (message: Message, currentGame: Game_room) : void => {
+const addReactions = (message: Message, currentGame: Game_room): void => {
     const emojis = currentGame.emojis as Emojis;
     const president = currentGame.gameStatus.president as User;
     for (let [emoji, player] of emojis) {
@@ -138,7 +141,7 @@ const addReactions = (message: Message, currentGame: Game_room) : void => {
     }
 }
 
-const callSpecialElection = async (currentGame: Game_room) : Promise<void> => {
+const callSpecialElection = async (currentGame: Game_room): Promise<void> => {
     const president = currentGame.gameStatus.president as User;
     const embed = new MessageEmbed()
         .setTitle('이제 특별 선거의 후보를 결정할 시간입니다.')
@@ -162,14 +165,14 @@ const callSpecialElection = async (currentGame: Game_room) : Promise<void> => {
     });
 }
 
-const startSpecialElection = (currentGame: Game_room, target: User) : void => {
+const startSpecialElection = (currentGame: Game_room, target: User): void => {
     const { gameStatus } = currentGame;
     gameStatus.specialElection = true
     changePresident(gameStatus);
     startRound(currentGame);
 }
 
-export const prepareNextRound = (currentGame: Game_room, termLimitedPresident?: User) : void => {
+export const prepareNextRound = (currentGame: Game_room, termLimitedPresident?: User): void => {
     const { gameStatus } = currentGame;
     if (!active_games.get(currentGame.mainChannel.id))
         return
@@ -182,7 +185,7 @@ export const prepareNextRound = (currentGame: Game_room, termLimitedPresident?: 
     startRound(currentGame);
 }
 
-const policyPeek = (currentGame: Game_room) : void => {
+const policyPeek = (currentGame: Game_room): void => {
     const { gameStatus } = currentGame;
     const president = gameStatus.president as User;
     const topPolicies = gameStatus.policyDeck.slice(-3).reverse();
@@ -190,7 +193,7 @@ const policyPeek = (currentGame: Game_room) : void => {
     prepareNextRound(currentGame);
 }
 
-const execution = async (currentGame: Game_room) : Promise<void> => {
+const execution = async (currentGame: Game_room): Promise<void> => {
     const { gameStatus } = currentGame;
     const president = gameStatus.president as User;
     const embed = new MessageEmbed()
@@ -209,23 +212,18 @@ const execution = async (currentGame: Game_room) : Promise<void> => {
         max: 1,
     })
     collector?.on('collect', (reaction, user) => {
-        const roles = currentGame.roles;
         const target = currentGame.emojis.get(reaction.emoji.toString());
-        const role = roles.get(target as User);
+        const role = currentGame.roles.get(target as User);
         reaction.message.delete()
         currentGame.mainChannel.send({
             content: `${target}님을 사살하였습니다.`,
         })
         if (role === HITLER)
-            executeHitler(currentGame);
-        else {
-            if (gameStatus.enactedLiberalPolicy === 4 && gameStatus.enactedFascistPolicy === 5) {
-                makeSuddenDeathByMastermind(currentGame);
-                return;
-            }
-            gameStatus.players = gameStatus.players.filter(player => player !== target);
-            currentGame.emojis.delete(reaction.emoji.toString());
-            prepareNextRound(currentGame);
-        }
+            return executeHitler(currentGame);
+        if (gameStatus.enactedLiberalPolicy === 4 && gameStatus.enactedFascistPolicy === 5)
+            return makeSuddenDeathByMastermind(currentGame);
+        gameStatus.players = gameStatus.players.filter(player => player !== target);
+        currentGame.emojis.delete(reaction.emoji.toString());
+        prepareNextRound(currentGame);
     });
 }

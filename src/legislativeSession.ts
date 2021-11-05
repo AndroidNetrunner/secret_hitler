@@ -1,16 +1,18 @@
 import { MessageActionRow, MessageButton, MessageEmbed } from "discord.js";
-import { LIBERAL, Policy } from "./board";
+import { FASCIST, LIBERAL, Policy } from "./board";
 import { Game_room } from "./Game_room";
 import { shuffle } from "./ready_game";
-import { prepareNextRound, startExecutiveAction } from './executiveAction';
+import { prepareNextRound, endExecutiveAction, enactFascistPolicy, enactLiberalPolicy } from './executiveAction';
+import { Game_status } from "./Game_status";
 
-export const startLegislativeSession = (currentGame: Game_room) : void => {
-    const { gameStatus } = currentGame;
+export const startLegislativeSession = (currentGame: Game_room) : void => { 
+    presidentChoosePolicy(currentGame, drawPolicies(currentGame.gameStatus));
+}
+const drawPolicies = (gameStatus : Game_status) : Policy[] => {
     const first = gameStatus.policyDeck.pop();
     const second = gameStatus.policyDeck.pop();
     const third = gameStatus.policyDeck.pop();
-    const drawedPolicies = [first, second, third] as Policy[];
-    presidentChoosePolicy(currentGame, drawedPolicies);
+    return [first, second, third] as Policy[];
 }
 
 const presidentChoosePolicy = async (currentGame: Game_room, drawedPolicies: Policy[]) : Promise<void> => {
@@ -63,7 +65,8 @@ const chancellorChoosePolicy = async (currentGame: Game_room, drawedPolicies: Po
             currentGame.mainChannel.send('수상이 법안을 하나 버렸습니다.')
             drawedPolicies.splice(parseInt(interaction.customId), 1);
             message?.delete();
-            startExecutiveAction(currentGame, drawedPolicies[0]);
+            drawedPolicies[0] === FASCIST ? enactFascistPolicy(currentGame): enactLiberalPolicy(currentGame);
+            endExecutiveAction(gameStatus);
         }
     })
 };
@@ -142,6 +145,7 @@ const vetoRefused = async (currentGame: Game_room, drawedPolicies: Policy[]) : P
     collector?.on('collect', (interaction) => {
         drawedPolicies.splice(parseInt(interaction.customId), 1);
         message?.delete();
-        startExecutiveAction(currentGame, drawedPolicies[0]);
+        drawedPolicies[0] === FASCIST ? enactFascistPolicy(currentGame): enactLiberalPolicy(currentGame);
+        endExecutiveAction(gameStatus);
     })
 }

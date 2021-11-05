@@ -1,4 +1,4 @@
-import DiscordJS, { Intents } from 'discord.js';
+import DiscordJS, { ClientUser, Intents } from 'discord.js';
 import WOKCommands from 'wokcommands';
 import path from 'path';
 import dotenv from 'dotenv';
@@ -13,6 +13,9 @@ const client = new DiscordJS.Client({
     ]
 })
 
+client.login(process.env.TOKEN).then(() => client.user?.setAvatar('secret_hitler.png'));
+
+
 client.on('ready', () => {
     console.log('The bot is ready');
 
@@ -20,10 +23,8 @@ client.on('ready', () => {
         commandsDir: path.join(__dirname, 'commands'),
         typeScript: true,
     }).setDefaultPrefix('?');
-})
+});
 
 client.on('messageReactionAdd', (reaction, user) => {
 
 })
-
-client.login(process.env.TOKEN);
