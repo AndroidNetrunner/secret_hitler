@@ -21,7 +21,8 @@ export const enactFascistPolicy = (currentGame: Game_room): void => {
     const scheduledPolicy = fascistBoard[gameStatus.enactedFascistPolicy - 1];
     const embed = new MessageEmbed()
         .setTitle(`${gameStatus.enactedFascistPolicy}번째 파시스트 법안이 제정되었습니다.`)
-        .setDescription(scheduledPolicy === BLANK ? `` : `${gameStatus.president}님은 ${scheduledPolicy} 권한을 사용할 수 있습니다.`);
+        .setDescription(scheduledPolicy === BLANK ? `` : `${gameStatus.president}님은 ${scheduledPolicy} 권한을 사용할 수 있습니다.`)
+        .setColor('RED');
     currentGame.mainChannel.send({
         embeds: [embed],
     });
@@ -54,6 +55,7 @@ export const enactLiberalPolicy = (currentGame: Game_room): void => {
     const { termLimitedPresident } = gameStatus;
     const embed = new MessageEmbed()
         .setTitle(`${gameStatus.enactedLiberalPolicy}번째 자유당 법안이 제정되었습니다.`)
+        .setColor('BLUE');
     if (gameStatus.enactedFascistPolicy === 5 && gameStatus.enactedLiberalPolicy === 4 && checkWinningOfMastermind(currentGame))
         return;
     currentGame.mainChannel.send({
