@@ -13,7 +13,7 @@ const client = new DiscordJS.Client({
     ]
 })
 
-client.login(process.env.TOKEN).then(() => client.user?.setAvatar('secret_hitler.png'));
+client.login(process.env.TOKEN).then(() => {client.user?.setAvatar('secret_hitler.png'); client.user?.setActivity('?명령어', {type: 'PLAYING'})});
 
 
 client.on('ready', () => {
