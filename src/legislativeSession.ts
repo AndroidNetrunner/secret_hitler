@@ -58,15 +58,15 @@ const chancellorChoosePolicy = async (currentGame: Game_room, drawedPolicies: Po
     const collector = chancellor?.dmChannel?.createMessageComponentCollector({
         max: 1,
     });
-    collector?.on('collect', async (interaction) => {
+    collector?.on('collect', (interaction) => {
         if (interaction.customId === 'veto')
             vetoPower(currentGame, drawedPolicies);
         else {
+            endExecutiveAction(gameStatus);
             currentGame.mainChannel.send('수상이 법안을 하나 버렸습니다.')
             drawedPolicies.splice(parseInt(interaction.customId), 1);
             message?.delete();
             drawedPolicies[0] === FASCIST ? enactFascistPolicy(currentGame): enactLiberalPolicy(currentGame);
-            await endExecutiveAction(gameStatus);
         }
     })
 };
@@ -143,9 +143,9 @@ const vetoRefused = async (currentGame: Game_room, drawedPolicies: Policy[]) : P
         max: 1,
     });
     collector?.on('collect', (interaction) => {
+        endExecutiveAction(gameStatus);
         drawedPolicies.splice(parseInt(interaction.customId), 1);
         message?.delete();
         drawedPolicies[0] === FASCIST ? enactFascistPolicy(currentGame): enactLiberalPolicy(currentGame);
-        endExecutiveAction(gameStatus);
     })
 }
