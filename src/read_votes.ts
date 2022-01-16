@@ -85,7 +85,7 @@ const enactTopFacistPolicy = (currentGame: Game_room): void => {
         .setColor('BLUE');
     currentGame.mainChannel.send({ embeds: [embed] });
     gameStatus.enactedFascistPolicy += 1;
-    if (gameStatus.enactedFascistPolicy === 5 && gameStatus.enactedLiberalPolicy === 4)
+    if (currentGame.mastermindExists && gameStatus.enactedFascistPolicy === 5 && gameStatus.enactedLiberalPolicy === 4)
         makeSuddenDeathByMastermind(currentGame);
     if (gameStatus.enactedFascistPolicy === 6)
         completeFascistTrack(currentGame);

@@ -24,6 +24,7 @@ const setMastermind = (possibleRoles: Role[], currentGame: Game_room) : Role[] =
     const hasMastermind = Math.random() > 0.5;
     const currentPossibleRoles = [...possibleRoles];
     if (hasMastermind) {
+        currentGame.mastermindExists = true;
         currentPossibleRoles.pop();
         currentPossibleRoles.push(MASTERMIND);
     }

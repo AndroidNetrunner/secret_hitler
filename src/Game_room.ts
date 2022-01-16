@@ -14,6 +14,7 @@ interface GameRoom {
 
 export class Game_room implements GameRoom {
     mastermind: boolean = false;
+    mastermindExists: boolean = false;
     roles: Map<User, Role> = new Map();
     balance: boolean = false;
     fascistBoard?: FascistBoard;

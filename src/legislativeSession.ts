@@ -58,7 +58,7 @@ const chancellorChoosePolicy = async (currentGame: Game_room, drawedPolicies: Po
     const collector = chancellor?.dmChannel?.createMessageComponentCollector({
         max: 1,
     });
-    collector?.on('collect', (interaction) => {
+    collector?.on('collect', async (interaction) => {
         if (interaction.customId === 'veto')
             vetoPower(currentGame, drawedPolicies);
         else {
@@ -66,7 +66,7 @@ const chancellorChoosePolicy = async (currentGame: Game_room, drawedPolicies: Po
             drawedPolicies.splice(parseInt(interaction.customId), 1);
             message?.delete();
             drawedPolicies[0] === FASCIST ? enactFascistPolicy(currentGame): enactLiberalPolicy(currentGame);
-            endExecutiveAction(gameStatus);
+            await endExecutiveAction(gameStatus);
         }
     })
 };

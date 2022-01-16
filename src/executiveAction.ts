@@ -222,7 +222,7 @@ const execution = async (currentGame: Game_room): Promise<void> => {
         })
         if (role === HITLER)
             return executeHitler(currentGame);
-        if (gameStatus.enactedLiberalPolicy === 4 && gameStatus.enactedFascistPolicy === 5)
+        if (currentGame.mastermindExists && gameStatus.enactedLiberalPolicy === 4 && gameStatus.enactedFascistPolicy === 5)
             return makeSuddenDeathByMastermind(currentGame);
         gameStatus.players = gameStatus.players.filter(player => player !== target);
         currentGame.emojis.delete(reaction.emoji.toString());
