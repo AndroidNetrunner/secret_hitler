@@ -81,8 +81,8 @@ const enactTopFacistPolicy = (currentGame: Game_room): void => {
     const { gameStatus } = currentGame;
     const embed = new MessageEmbed()
         .setTitle('정부가 3연속 구성되지 않아 민중이 분노해 법안을 강제로 제정합니다!')
-        .setDescription('제정된 법안은 자유당 법안이었습니다.')
-        .setColor('BLUE');
+        .setDescription('제정된 법안은 파시스트당 법안이었습니다.')
+        .setColor('RED');
     currentGame.mainChannel.send({ embeds: [embed] });
     gameStatus.enactedFascistPolicy += 1;
     if (currentGame.mastermindExists && gameStatus.enactedFascistPolicy === 5 && gameStatus.enactedLiberalPolicy === 4)
