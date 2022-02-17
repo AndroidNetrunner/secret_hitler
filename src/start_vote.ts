@@ -28,11 +28,11 @@ export const startVote = async (currentGame: Game_room) : Promise<void> => {
                     .setLabel('반대')
                     .setStyle('DANGER')
             );
+    try {
         const message = await player.send({
             embeds: [embed],
             components: [messageRow],
         })
-
         const collector = player.dmChannel?.createMessageComponentCollector({
             max: 1,
         });
@@ -55,4 +55,11 @@ export const startVote = async (currentGame: Game_room) : Promise<void> => {
             readVotes(currentGame);
         });
     }
+    catch (error) {
+    currentGame.mainChannel.send(
+        `앗! 누군가가 봇에게 DM 발송 권한을 주지 않아 DM 발송에 실패했습니다. 
+        설정 -> 개인정보 보호 및 보안 -> "서버 멤버가 보내는 다이렉트 메세지 허용하기"가 켜져있는지 확인해주세요!
+        모든 플레이어가 허용한 후, >리셋을 입력해 게임을 초기화할 수 있습니다.`);
+    }
+}
 }

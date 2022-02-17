@@ -1,4 +1,4 @@
-import { MessageEmbed, User } from "discord.js";
+import { MessageEmbed, TextBasedChannels, User } from "discord.js";
 import { FASCIST, fascistBoard, HITLER, LIBERAL, MASTERMIND, Policy, Role, roleByNumberOfPlayers } from "./board";
 import { getRoles } from "./end_game";
 import { Game_room } from "./Game_room";
@@ -6,11 +6,19 @@ import { Game_status } from "./Game_status";
 import { startRound } from "./start_round";
 import { active_games } from "./state";
 
-export const readyGame = (channelId: string) : void => {
+export const readyGame = async (channelId: string) : Promise<void> => {
     const currentGame = active_games.get(channelId) as Game_room;
     const { gameStatus } = currentGame;
     const roleOfPlayers = assignRoles(currentGame);
-    notifyRoles(roleOfPlayers);
+    try {
+        await notifyRoles(roleOfPlayers, currentGame.mainChannel);
+    }
+    catch (error) {
+        currentGame.mainChannel.send(
+            `앗! 누군가가 봇에게 DM 발송 권한을 주지 않아 DM 발송에 실패했습니다. 
+            설정 -> 개인정보 보호 및 보안 -> "서버 멤버가 보내는 다이렉트 메세지 허용하기"가 켜져있는지 확인해주세요!
+            모든 플레이어가 허용한 후, ?리셋을 입력해 게임을 초기화할 수 있습니다.`);
+    }
     console.log(roleOfPlayers);
     decideFirstPresident(gameStatus);
     setEmoji(currentGame);
@@ -43,8 +51,8 @@ const assignRoles = (currentGame: Game_room): Map<User, Role> => {
     return roleOfPlayers;
 }
 
-const notifyRoles = (roleOfPlayers: Map<User, Role>) : void => {
-    roleOfPlayers.forEach((role, player) => {
+const notifyRoles = async (roleOfPlayers: Map<User, Role>, mainChannel: TextBasedChannels) : Promise<void> => {
+    for (let [player, role] of roleOfPlayers) {
         const description = decideDescriptionByRole(player, roleOfPlayers);
         let color: "BLUE" | "RED" | "GREEN";
         switch (role) {
@@ -64,8 +72,8 @@ const notifyRoles = (roleOfPlayers: Map<User, Role>) : void => {
                 name: `각 플레이어의 정체는 다음과 같습니다.`,
                 value: getRoles(roleOfPlayers),
             })
-        player.send({ embeds: [embed] })
-    })
+            await player.send({ embeds: [embed] });
+    }
 };
 
 const decideFirstPresident = (gameStatus: Game_status) : void => {
