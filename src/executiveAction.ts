@@ -120,7 +120,7 @@ const investigateLoyalty = async (currentGame: Game_room): Promise<void> => {
         filter,
         max: 1,
     });
-    collector.on('collect', (reaction, user) => {
+    collector.on('collect', (reaction: MessageReaction, user: User) => {
         const target = currentGame.emojis.get(reaction.emoji.toString());
         const role = roles.get(target as User);
         reaction.message.channel.send(`${target}을 대통령이 조사하였습니다.`);
@@ -158,9 +158,9 @@ const callSpecialElection = async (currentGame: Game_room): Promise<void> => {
     addReactions(message as Message, currentGame)
     const collector = message?.createReactionCollector({
         max: 1,
-        filter: (reaction, user) => !!(currentGame.emojis.get(reaction.emoji.toString()) && user.id === president.id),
+        filter: (reaction: MessageReaction, user: User) => !!(currentGame.emojis.get(reaction.emoji.toString()) && user.id === president.id),
     })
-    collector?.on('collect', (reaction, user) => {
+    collector?.on('collect', (reaction: MessageReaction, user: User) => {
         reaction.message.delete();
         const target = currentGame.emojis.get(reaction.emoji.toString()) as User;
         startSpecialElection(currentGame, target);
@@ -210,10 +210,10 @@ const execution = async (currentGame: Game_room): Promise<void> => {
     })
     addReactions(message as Message, currentGame)
     const collector = message?.createReactionCollector({
-        filter: (reaction, user) => !!(currentGame.emojis.get(reaction.emoji.toString()) && user.id === president.id),
+        filter: (reaction: MessageReaction, user: User) => !!(currentGame.emojis.get(reaction.emoji.toString()) && user.id === president.id),
         max: 1,
     })
-    collector?.on('collect', (reaction, user) => {
+    collector?.on('collect', (reaction: MessageReaction, user: User) => {
         const target = currentGame.emojis.get(reaction.emoji.toString());
         const role = currentGame.roles.get(target as User);
         reaction.message.delete()

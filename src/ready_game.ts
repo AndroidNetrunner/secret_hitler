@@ -1,4 +1,4 @@
-import { MessageEmbed, TextBasedChannels, User } from "discord.js";
+import { MessageEmbed, TextBasedChannel, User } from "discord.js";
 import { FASCIST, fascistBoard, HITLER, LIBERAL, MASTERMIND, Policy, Role, roleByNumberOfPlayers } from "./board";
 import { getRoles } from "./end_game";
 import { Game_room } from "./Game_room";
@@ -51,7 +51,7 @@ const assignRoles = (currentGame: Game_room): Map<User, Role> => {
     return roleOfPlayers;
 }
 
-const notifyRoles = async (roleOfPlayers: Map<User, Role>, mainChannel: TextBasedChannels) : Promise<void> => {
+const notifyRoles = async (roleOfPlayers: Map<User, Role>, mainChannel: TextBasedChannel) : Promise<void> => {
     for (let [player, role] of roleOfPlayers) {
         const description = decideDescriptionByRole(player, roleOfPlayers);
         let color: "BLUE" | "RED" | "GREEN";
