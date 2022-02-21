@@ -23,7 +23,7 @@ const track : ICommand = {
     }
 }
 
-const getFascistTrack = (gameStatus : Game_status) => {
+const getFascistTrack = (gameStatus : Game_status) : string => {
     let value = "";
     const { enactedFascistPolicy } = gameStatus;
     const board = fascistBoard[gameStatus.players.length as 3 | 5 | 6 | 7 | 8 | 9 | 10];
