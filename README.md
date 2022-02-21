@@ -43,3 +43,16 @@
 
 * discord.js - 13.6.0
 * Typescript - 4.5.5
+
+## 설치 및 실행
+1. npm
+
+```bash
+npm install && npm run dev
+```
+
+2. yarn
+
+```bash
+yarn && yarn run dev
+```
