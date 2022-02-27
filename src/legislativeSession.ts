@@ -2,8 +2,9 @@ import { MessageActionRow, MessageButton, MessageEmbed } from "discord.js";
 import { FASCIST, LIBERAL, Policy } from "./board";
 import { Game_room } from "./Game_room";
 import { shuffle } from "./ready_game";
-import { prepareNextRound, endExecutiveAction, enactFascistPolicy, enactLiberalPolicy } from './executiveAction';
+import { prepareNextRound, endExecutiveAction, enactFascistPolicy, enactLiberalPolicy, shufflePolicyDeck } from './executiveAction';
 import { Game_status } from "./Game_status";
+import { enactTopPolicy } from "./read_votes";
 
 export const startLegislativeSession = (currentGame: Game_room) : void => { 
     presidentChoosePolicy(currentGame, drawPolicies(currentGame.gameStatus));
@@ -118,6 +119,11 @@ const vetoPower = async (currentGame: Game_room, drawedPolicies: Policy[]) : Pro
         message?.delete();
         if (interaction.customId === 'agree') {
             currentGame.mainChannel.send("거부권 사용이 승인되었습니다.");
+            if (gameStatus.policyDeck.length < 3)
+              shufflePolicyDeck(currentGame);
+            gameStatus.electionTracker += 1;
+            if (gameStatus.electionTracker === 3)
+                enactTopPolicy(currentGame);
             prepareNextRound(currentGame);
         }
         else

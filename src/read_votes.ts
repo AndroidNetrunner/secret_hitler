@@ -64,7 +64,7 @@ export const changePresident = (gameStatus: Game_status): User => {
     return gameStatus.president;
 }
 
-const enactTopPolicy = (currentGame: Game_room): void => {
+export const enactTopPolicy = (currentGame: Game_room): void => {
     const { gameStatus } = currentGame;
     const newPolicy: Policy = gameStatus.policyDeck.pop() as Policy;
     gameStatus.electionTracker = 0;
