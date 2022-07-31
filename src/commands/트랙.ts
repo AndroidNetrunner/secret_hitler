@@ -16,11 +16,15 @@ const track: ICommand = {
       .setFields([
         {
           name: "파시스트 트랙",
-          value: getFascistTrack(currentGame.gameStatus),
+          value:
+            getFascistTrack(currentGame.gameStatus) ||
+            "출력 오류. 명령을 다시 시도해주세요.",
         },
         {
           name: "자유당 트랙",
-          value: currentGame.gameStatus.enactedLiberalPolicy.toString(),
+          value:
+            currentGame.gameStatus.enactedLiberalPolicy.toString() ||
+            "출력 오류. 명령을 다시 시도해주세요.",
         },
       ]);
   },
