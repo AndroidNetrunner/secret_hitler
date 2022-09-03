@@ -22,8 +22,8 @@ export class Game_room implements GameRoom {
     numberOfInitialPolicy: 15 | 16 | 17 = 17;
     emojis: Emojis = new Map();
     gameStatus: Game_status = new Game_status();
-    constructor(message: Message) {
-        this.gameStatus.players = [message.author];
-        this.mainChannel = message.channel;
+    constructor(starter: User, channel: TextBasedChannel) {
+        this.gameStatus.players = [starter];
+        this.mainChannel = channel;
     }
 }

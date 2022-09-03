@@ -6,9 +6,10 @@ import { active_games } from "../state";
 
 const track: ICommand = {
   category: "playing",
-  description: "showing current track",
-  callback: ({ message }) => {
-    const currentGame = active_games.get(message.channelId);
+  description: "현재 게임의 트랙 상황을 출력합니다. 진행 중인 게임이 없으면 사용할 수 없습니다.",
+  slash: true,
+  callback: ({ interaction }) => {
+    const currentGame = active_games.get(interaction.channelId);
     if (!currentGame || !currentGame.fascistBoard || !currentGame.gameStatus)
       return `현재 시작한 게임이 존재하지 않습니다.`;
     return new MessageEmbed()

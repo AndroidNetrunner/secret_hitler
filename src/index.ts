@@ -13,7 +13,7 @@ const client = new DiscordJS.Client({
     ]
 })
 
-client.login(process.env.TOKEN).then(() => {client.user?.setAvatar('secret_hitler.png'); client.user?.setActivity('?명령어', {type: 'PLAYING'})});
+client.login(process.env.TOKEN).then(() => {client.user?.setAvatar('secret_hitler.png'); client.user?.setActivity('/명령어', {type: 'PLAYING'})});
 
 
 client.on('ready', () => {
@@ -22,9 +22,5 @@ client.on('ready', () => {
     new WOKCommands(client, {
         commandsDir: path.join(__dirname, 'commands'),
         typeScript: true,
-    }).setDefaultPrefix('?');
+    });
 });
-
-client.on('messageReactionAdd', (reaction, user) => {
-
-})
