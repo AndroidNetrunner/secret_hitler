@@ -1,6 +1,6 @@
 import { Message, MessageEmbed, MessageReaction, User } from "discord.js";
 import { BLANK, CALL_SPECIAL_ELECTION, EXECUTION, FASCIST, FascistBoard, FASCIST_WIN, HITLER, INVESTIGATE_LOYALTY, LIBERAL, MASTERMIND, Policy, POLICY_PEEK } from "./board";
-import { completeFascistTrack, completeLiberalTrack, enactFourthLiberalPolicyByMastermind, executeHitler, makeSuddenDeathByMastermind } from "./end_game";
+import endGame from "./end_game";
 import { Emojis, Game_room } from "./Game_room";
 import { Game_status } from "./Game_status";
 import { shuffle } from "./ready_game";
@@ -42,7 +42,7 @@ export const enactFascistPolicy = (currentGame: Game_room): void => {
             execution(currentGame);
             break;
         case FASCIST_WIN:
-            completeFascistTrack(currentGame);
+            endGame(currentGame, '파시스트 법안 트랙 완성으로 인한 파시스트당 승리');
             break;
         default:
             prepareNextRound(currentGame);
@@ -62,7 +62,7 @@ export const enactLiberalPolicy = (currentGame: Game_room): void => {
         embeds: [embed],
     });
     if (gameStatus.enactedLiberalPolicy === 5)
-        completeLiberalTrack(currentGame);
+        endGame(currentGame, '자유당 법안 트랙 완성으로 인한 자유당 승리')
     else {
         if (gameStatus.policyDeck.length < 3)
             shufflePolicyDeck(currentGame);
@@ -72,7 +72,7 @@ export const enactLiberalPolicy = (currentGame: Game_room): void => {
 
 const checkWinningOfMastermind = (currentGame: Game_room) => {
     if (currentGame.roles.get(currentGame.gameStatus.chancellor as User) === MASTERMIND) { 
-        enactFourthLiberalPolicyByMastermind(currentGame);
+        endGame(currentGame, '5번째 파시스트 법안 제정 후 수상으로서 4번째 자유당 법안 제정으로 인한 배후 승리');
         return true;
     }
     revealsMastermind(currentGame);
@@ -221,9 +221,9 @@ const execution = async (currentGame: Game_room): Promise<void> => {
             content: `${target}님을 사살하였습니다.`,
         })
         if (role === HITLER)
-            return executeHitler(currentGame);
+            return endGame(currentGame, '히틀러 처형으로 인한 자유당 승리');
         if (currentGame.mastermindExists && gameStatus.enactedLiberalPolicy === 4 && gameStatus.enactedFascistPolicy === 5)
-            return makeSuddenDeathByMastermind(currentGame);
+            return endGame(currentGame, '4번째 자유당 법안 제정 후 5번째 파시스트 법안 제정으로 인한 배후 승리');
         gameStatus.players = gameStatus.players.filter(player => player !== target);
         currentGame.emojis.delete(reaction.emoji.toString());
         prepareNextRound(currentGame);

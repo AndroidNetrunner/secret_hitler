@@ -4,7 +4,7 @@ import { Game_room } from "./Game_room";
 import { startLegislativeSession } from "./legislativeSession";
 import { prepareNextRound, shufflePolicyDeck } from './executiveAction';
 import { FASCIST, HITLER, Policy } from "./board";
-import { completeFascistTrack, completeLiberalTrack, electHitlerByChancellor, makeSuddenDeathByMastermind } from './end_game';
+import endGame from './end_game';
 import { revealsMastermind } from "./executiveAction";
 import { Game_status } from "./Game_status";
 
@@ -20,7 +20,7 @@ export const readVotes = async (currentGame: Game_room): Promise<void> => {
     gameStatus.agree = [];
     gameStatus.disagree = [];
     if (isElected)
-        return electHitlerAfterThreeFacistPolicies(currentGame) ? electHitlerByChancellor(currentGame) : startLegislativeSession(currentGame);
+        return electHitlerAfterThreeFacistPolicies(currentGame) ? endGame(currentGame, '히틀러의 수상 당선으로 인한 파시스트당 승리') : startLegislativeSession(currentGame);
     gameStatus.electionTracker += 1;
     if (gameStatus.electionTracker === 3)
         enactTopPolicy(currentGame);
@@ -86,9 +86,9 @@ const enactTopFacistPolicy = (currentGame: Game_room): void => {
     currentGame.mainChannel.send({ embeds: [embed] });
     gameStatus.enactedFascistPolicy += 1;
     if (currentGame.mastermindExists && gameStatus.enactedFascistPolicy === 5 && gameStatus.enactedLiberalPolicy === 4)
-        makeSuddenDeathByMastermind(currentGame);
+        endGame(currentGame, '4번째 자유당 법안 제정 후 5번째 파시스트 법안 제정으로 인한 배후 승리');
     if (gameStatus.enactedFascistPolicy === 6)
-        completeFascistTrack(currentGame);
+        endGame(currentGame, '파시스트 법안 트랙 완성인한 파시스트당 승리');
 }
 
 const enactTopLiberalPolicy = (currentGame: Game_room): void => {
@@ -102,5 +102,5 @@ const enactTopLiberalPolicy = (currentGame: Game_room): void => {
     if (gameStatus.enactedFascistPolicy === 5 && gameStatus.enactedLiberalPolicy === 4)
         revealsMastermind(currentGame);
     if (gameStatus.enactedLiberalPolicy === 5)
-        completeLiberalTrack(currentGame);
+        endGame(currentGame, '자유당 법안 트랙 완성으로 인한 자유당 승리');
 }
