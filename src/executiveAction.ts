@@ -5,7 +5,7 @@ import { Emojis, Game_room } from "./Game_room";
 import { Game_status } from "./Game_status";
 import { shuffle } from "./ready_game";
 import { changePresident } from "./read_votes";
-import { getFieldValue, startRound } from "./start_round";
+import { startRound } from "./start_round";
 import { active_games } from "./state";
 
 export const endExecutiveAction = (gameStatus: Game_status): void => {
@@ -106,11 +106,7 @@ const investigateLoyalty = async (currentGame: Game_room): Promise<void> => {
     const president = gameStatus.president;
     const embed = new MessageEmbed()
         .setTitle('이제 소속을 조사할 시간입니다.')
-        .setDescription(`${president}님, 소속을 확인하고 싶은 1명의 이모티콘을 눌러주세요.`)
-        .setFields({
-            name: `이모티콘이 의미하는 플레이어는 다음과 같습니다.`,
-            value: getFieldValue(currentGame),
-        })
+        .setDescription(`${president}님, 소속을 확인하고 싶은 1명의 버튼을 눌러주세요.`)
     const message = await currentGame.mainChannel.send({
         embeds: [embed],
     });
@@ -147,13 +143,10 @@ const callSpecialElection = async (currentGame: Game_room): Promise<void> => {
     const president = currentGame.gameStatus.president as User;
     const embed = new MessageEmbed()
         .setTitle('이제 특별 선거의 후보를 결정할 시간입니다.')
-        .setDescription(`${president}님, 특별 선거의 대통령 후보로 지정하고 싶은 1명의 이모티콘을 눌러주세요.`)
-        .setFields({
-            name: `이모티콘이 의미하는 플레이어는 다음과 같습니다.`,
-            value: getFieldValue(currentGame),
-        });
+        .setDescription(`${president}님, 특별 선거의 대통령 후보로 지정하고 싶은 1명의 이모티콘을 눌러주세요.`);
     const message = await currentGame.mainChannel?.send({
         embeds: [embed],
+        components: currentGame.gameStatus.getPlayerButtons(player => player.id !== president.id)
     })
     addReactions(message as Message, currentGame)
     const collector = message?.createReactionCollector({
@@ -201,14 +194,10 @@ const execution = async (currentGame: Game_room): Promise<void> => {
     const embed = new MessageEmbed()
         .setTitle('이제 플레이어를 처형할 시간입니다.')
         .setDescription(`${president}님, 처형하고 싶은 1명의 이모티콘을 눌러주세요.`)
-        .setFields({
-            name: `이모티콘이 의미하는 플레이어는 다음과 같습니다.`,
-            value: getFieldValue(currentGame),
-        })
     const message = await currentGame.mainChannel?.send({
         embeds: [embed],
+        components: gameStatus.getPlayerButtons(player => player.id !== president.id)
     })
-    addReactions(message as Message, currentGame)
     const collector = message?.createReactionCollector({
         filter: (reaction: MessageReaction, user: User) => !!(currentGame.emojis.get(reaction.emoji.toString()) && user.id === president.id),
         max: 1,

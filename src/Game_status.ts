@@ -1,4 +1,4 @@
-import { User } from "discord.js"
+import { MessageActionRow, MessageButton, User } from "discord.js"
 import { FASCIST, LIBERAL, Policy } from "./board";
 
 interface GameStatus {
@@ -36,5 +36,25 @@ export class Game_status implements GameStatus {
 
     get ineligibleNominees () {
         return this.players.filter(player => player === this.termLimitedPresident || player === this.termLimitedChancellor || player === this.president);
+    }
+
+    getPlayerButtons(filter: (player: User) => boolean) {
+        const actionRow = [new MessageActionRow().addComponents(
+            this.players.slice(0,5).map(player => new MessageButton().
+            setLabel(player.username)
+            .setDisabled(filter(player))
+            .setCustomId(player.id)
+            .setStyle('SECONDARY'))
+        )];
+        if (this.players.length > 5) {
+            actionRow.concat([new MessageActionRow().addComponents(
+                this.players.slice(5).map(player => new MessageButton().
+                setLabel(player.username)
+                .setDisabled(!filter(player))
+                .setCustomId(player.id)
+                .setStyle('SECONDARY'))
+            )])
+        }
+        return actionRow;
     }
 }
