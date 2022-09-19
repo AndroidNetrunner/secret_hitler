@@ -26,6 +26,7 @@ const presidentChoosePolicy = async (
   currentGame: Game_room,
   drawedPolicies: [Policy, Policy, Policy]
 ): Promise<void> => {
+  console.log(drawedPolicies);
   const { gameStatus } = currentGame;
   const president = gameStatus.president;
   const embed = new MessageEmbed()
@@ -43,11 +44,9 @@ const presidentChoosePolicy = async (
   });
   collector?.on("collect", (interaction) => {
     currentGame.mainChannel.send(`대통령이 법안을 하나 버렸습니다.`);
-    const remainedPolicies = drawedPolicies.splice(
-      parseInt(interaction.customId),
-      1
-    ) as [Policy, Policy];
-    chancellorChoosePolicy(currentGame, remainedPolicies);
+    drawedPolicies.splice(parseInt(interaction.customId), 1);
+    const remainedPolicies = [...drawedPolicies];
+    chancellorChoosePolicy(currentGame, remainedPolicies as [Policy, Policy]);
     message?.delete();
   });
 };
