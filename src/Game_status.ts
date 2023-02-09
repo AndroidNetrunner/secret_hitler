@@ -91,7 +91,7 @@ export class Game_status implements GameStatus {
       ),
     ];
     if (this.players.length > 5) {
-      actionRow.concat([
+      return actionRow.concat([
         new MessageActionRow().addComponents(
           this.players
             .slice(5)
